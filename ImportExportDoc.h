@@ -11,7 +11,17 @@
 
 #include <ColoredShapes.h>
 #include <OCC_3dDoc.h>
+#include "BRepPrimAPI_MakeBox.hxx"
+#include "Geom_BezierCurve.hxx"
+#include <BRepGProp.hxx>
+#include "GProp_GProps.hxx"
+#include <BRepOffsetAPI_ThruSections.hxx>
+#include "gp_Trsf.hxx"
+#include "VoluteDialog.h"
 
+
+//#include "BRepFeat_MakeCylindricalHole.hxx"
+//#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
 {
 	DECLARE_DYNCREATE(CImportExportDoc)
@@ -25,6 +35,17 @@ public:
 		    			const Standard_Integer  y       ,
                         const Handle(V3d_View)& aView   ); 
 
+
+	double getTrapezuimHeight(double,double,double,double);
+	 double getSurfaceArea(TopoDS_Wire);
+	double numberTesting();
+	TopoDS_Wire createNewShapeWithRightArea(double,double,double,double,double,double);
+	TopoDS_Wire curveConstructor(double,double,double,double,double);
+	TopoDS_Wire createVolute();
+	TopoDS_Edge createCurveEdge(double,double,double,double,double);
+	TopoDS_Wire createTrapazium(double,double,double,double);
+	TopoDS_Wire createNewTrapazium(double,double,double,double,double,double);
+	TopoDS_Wire createNewShapeAccordingToR1height(double,double,double,double,double);
 
 // Implementation
 #ifdef _DEBUG
@@ -48,12 +69,30 @@ protected:
 	afx_msg void OnObjectRemove();
 	afx_msg void OnObjectErase();
 	afx_msg void OnObjectDisplayall();
+	afx_msg void OnBox1();
+	afx_msg void OnBottle();
+	afx_msg void OnTest();
+	afx_msg void OnBREPFile();
+	afx_msg void OnIGESFile();
+	afx_msg void OnSTEPFile();
+	afx_msg void OnFillet();
+	afx_msg void OnFilletDialog();
+	afx_msg void OnCut();
+	afx_msg void OnMakeBoxDrill();
+	afx_msg void OnVolute();
+	
+	
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 
 //Attributes
 protected:
 	CColoredShapes* m_pcoloredshapeList;
+	BRepPrimAPI_MakeBox* boxPointer; //= new BRepPrimAPI_MakeBox();
+	CVoluteDialog* voluteDlg;
+	
+	
+
 };
 
 /////////////////////////////////////////////////////////////////////////////

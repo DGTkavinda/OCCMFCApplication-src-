@@ -42,6 +42,7 @@ IMPLEMENT_SERIAL(CColoredShapes, CObject,1);
 
 void CColoredShapes::Display(Handle(AIS_InteractiveContext)& anAIScontext)
 {
+	anAIScontext->SetDisplayMode(AIS_Shaded);
 	for ( TopoDS_ListIteratorOfListOfShape iter(m_shapeList); iter.More(); iter.Next() )
 	{
 		Handle(AIS_Shape) ais = new AIS_Shape(iter.Value());
