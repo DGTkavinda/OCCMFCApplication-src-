@@ -18,7 +18,9 @@
 #include <BRepOffsetAPI_ThruSections.hxx>
 #include "gp_Trsf.hxx"
 #include "VoluteDialog.h"
-
+#include "GeomAbs_JoinType.hxx"
+#include "BRepOffsetAPI_MakeOffsetShape.hxx"
+#include "BRepOffset_Mode.hxx"
 
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
@@ -42,10 +44,12 @@ public:
 	TopoDS_Wire createNewShapeWithRightArea(double,double,double,double,double,double);
 	TopoDS_Wire curveConstructor(double,double,double,double,double);
 	TopoDS_Wire createVolute();
-	TopoDS_Edge createCurveEdge(double,double,double,double,double);
+	TopoDS_Wire createCurveEdge(double,double,double,double,double);
 	TopoDS_Wire createTrapazium(double,double,double,double);
-	TopoDS_Wire createNewTrapazium(double,double,double,double,double,double);
+	TopoDS_Wire createNewTrapazium(double,double,double,double);
 	TopoDS_Wire createNewShapeAccordingToR1height(double,double,double,double,double);
+	gp_Pnt getCentrePoint(TopoDS_Wire);
+	TopoDS_Wire createOuterShell(double,double,double,double,double);
 
 // Implementation
 #ifdef _DEBUG
@@ -80,6 +84,10 @@ protected:
 	afx_msg void OnCut();
 	afx_msg void OnMakeBoxDrill();
 	afx_msg void OnVolute();
+	afx_msg void OnThickness();
+	afx_msg void OnOffSet();
+	afx_msg void OnThickness2();
+	afx_msg void OnImportVolute();
 	
 	
 	//}}AFX_MSG
