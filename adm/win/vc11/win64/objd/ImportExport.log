@@ -1,0 +1,11 @@
+﻿  ImportExportDoc.cpp
+D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(9): warning C4005: 'IDOK' : macro redefinition
+          C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10477) : see previous definition of 'IDOK'
+D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(10): warning C4005: 'IDCANCEL' : macro redefinition
+          C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10478) : see previous definition of 'IDCANCEL'
+..\..\..\src\ImportExportDoc.cpp(277): warning C4101: 'gprop' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(629): warning C4101: 'gprop' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(1139): warning C4101: 'gprop' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(1152): warning C4100: 'initialHieght' : unreferenced formal parameter
+     Creating library ../../../../win64\vc11\bin\ImportExport.lib and object ../../../../win64\vc11\bin\ImportExport.exp
+  ImportExport.vcxproj -> D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\../../../../win64\vc11\bin\ImportExport.exe
