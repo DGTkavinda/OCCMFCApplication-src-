@@ -232,6 +232,172 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	void CImportExportDoc::OnDualVolute()
 	{
 
+		{
+
+
+
+
+		double area1Percentage;
+		double area2Percentage;
+
+		area1Percentage=40;
+		area2Percentage=60;
+
+
+
+
+
+		TopoDS_Shape importedShape;
+
+		Handle(TopTools_HSequenceOfShape) aSeqOfShape = CImportExport::ReadBREP();
+		for(int i=1;i<= aSeqOfShape->Length();i++)
+		{
+			importedShape=aSeqOfShape->Value(i);
+
+		}
+
+		TopoDS_Wire importedWire=TopoDS::Wire(importedShape);
+
+
+		TopoDS_Edge edges[4];
+		TopExp_Explorer anEdgeExplorer(importedWire, TopAbs_EDGE);
+		int i=0;
+		while(anEdgeExplorer.More()){
+			TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+			edges[i]=anEdge;
+			anEdgeExplorer.Next();
+			i++;
+
+		}
+
+
+		TopoDS_Vertex vertex[2];
+		TopExp_Explorer vertexExplorer(importedWire,TopAbs_VERTEX);
+		int j=0;
+		while(vertexExplorer.More()){
+			TopoDS_Vertex aVertex =TopoDS::Vertex(vertexExplorer.Current());
+			vertex[j]=aVertex;
+			vertexExplorer.Next();
+			j++;
+		}
+
+
+		TopoDS_Edge horizontalBaseEdge=BRepBuilderAPI_MakeEdge(vertex[0],vertex[1]);
+
+
+
+
+		BRepGProp gprop; 
+		GProp_GProps surfaceProps;
+
+		gprop.LinearProperties(importedWire,surfaceProps);
+
+		double length=surfaceProps.Mass();
+
+
+		//TopoDS_Edge importedEdge=TopoDS::Edge(importedWire);
+
+		//double U1=0;
+		//double U2=1;
+		Standard_Real U1=0;
+		Standard_Real U2=1;
+
+		gp_Pnt pnt;
+		gp_Vec V1;
+		gp_Vec V2;
+		gp_Vec V3;
+		Handle_Geom_Curve curve= BRep_Tool::Curve(edges[0],U1, U2);
+
+		//	Handle_Geom_BSplineCurve splineCurve=BRep_Tool::Curve(edges[0],U1,U2);
+
+		Handle(Geom_BSplineCurve) splineCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+		Handle(Geom_BSplineCurve) splineBase1 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+		Handle(Geom_BSplineCurve) splineBase2 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+		//Handle_Geom_BSplineCurve splineCurve= Handle_Geom_BSplineCurve::DownCast(curve->Copy());
+
+		splineCurve->Segment(47,131);
+
+		splineBase1->Segment(0,47);
+
+		splineBase2->Segment(131,U2);
+
+
+
+		TopoDS_Edge splineEdge= BRepBuilderAPI_MakeEdge(splineCurve);
+		TopoDS_Edge baseEdge1= BRepBuilderAPI_MakeEdge(splineBase1);
+		TopoDS_Edge baseEdge2=BRepBuilderAPI_MakeEdge(splineBase2);
+
+		CString str;
+		str.Format(_T("U1,U2 %g \n"),U1);
+		CString str1;
+		str1.Format(_T("U1,U2 %g \n"),U2);
+
+		AfxMessageBox(str+str1);
+
+
+		ofstream out;
+		out.open("D:/text.txt");
+
+		for(int i=0; i<U2;i++){
+
+
+			Standard_Real U=i;
+			curve->D1(U,pnt,V1);
+
+			Standard_Real x=V1.X();
+
+
+
+			out<<"\n  U   : "<<U<<endl;
+			out<<" v1 : "<<x<<endl;
+
+
+		}
+
+
+		//TopoDS_Edge leFaceTopBottomEdge = TopoDS::Edge(Expl.Current());
+		//Handle_Geom_Curve cleFaceBottom = BRep_Tool::Curve(leFaceTopBottomEdge,U1, U2);
+		//SurfaceLine leFaceTopBottomSurfaceLine = faceBuilder.makeSurfaceLineFromEdge(leFaceTopBottomEdge);
+		//Node nodeTemp;
+		//if(data.machineType != 1)
+		//	/*double zVal*/nodeTemp = leFaceTopBottomSurfaceLine.minZPoint();//minZ();
+		//else
+		//	nodeTemp = leFaceTopBottomSurfaceLine.maxZPoint();;
+		////Node nodeTemp = leFaceTopBottomSurfaceLine.atZ(zVal);
+		//TopoDS_Vertex vminZ;
+		//gp_Pnt projectedMinZPoint;
+		//gp_Pnt minZPoint(nodeTemp.lp().cp().x(),nodeTemp.lp().cp().y(),nodeTemp.lp().cp().z());
+		////gp_Pnt minZPoint = cleFaceBottom->Value((U1+U2)/2);
+		//GeomAPI_ProjectPointOnCurve pointProject2(minZPoint,cleFaceBottom);
+		//Standard_Real vProjPoint1,vProjPoint2;
+		//if(pointProject2.NbPoints()>0)
+		//{
+
+
+		Standard_Real turningPnt=U2*(41/U2);
+
+		curve->D1(turningPnt,pnt,V1);
+
+		BRepBuilderAPI_MakeVertex vert(pnt);
+
+
+
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_BLACK,edges[0]);
+
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,splineEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,baseEdge1);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,baseEdge2);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,horizontalBaseEdge);
+
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,vert);
+
+
+		m_pcoloredshapeList->Display(myAISContext);
+		Fit();
 
 	}
 
