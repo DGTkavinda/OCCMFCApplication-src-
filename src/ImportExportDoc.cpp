@@ -232,20 +232,15 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	void CImportExportDoc::OnDualVolute()
 	{
 
-		{
-
-
-
 
 		double area1Percentage;
 		double area2Percentage;
+		double ratio;
 
 		area1Percentage=40;
 		area2Percentage=60;
 
-
-
-
+		ratio=area1Percentage/100;
 
 		TopoDS_Shape importedShape;
 
@@ -258,7 +253,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		TopoDS_Wire importedWire=TopoDS::Wire(importedShape);
 
-
 		TopoDS_Edge edges[4];
 		TopExp_Explorer anEdgeExplorer(importedWire, TopAbs_EDGE);
 		int i=0;
@@ -269,7 +263,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 			i++;
 
 		}
-
 
 		TopoDS_Vertex vertex[2];
 		TopExp_Explorer vertexExplorer(importedWire,TopAbs_VERTEX);
@@ -282,17 +275,63 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		}
 
 
+
+
+		Standard_Real basePara1;
+		Standard_Real basePara2;
+		gp_Pnt dividePnt;
+		gp_Vec devidePointVec;
+
 		TopoDS_Edge horizontalBaseEdge=BRepBuilderAPI_MakeEdge(vertex[0],vertex[1]);
+		Handle_Geom_Curve horizontalBaseLine=BRep_Tool::Curve(horizontalBaseEdge,basePara1,basePara2);
+
+		
 
 
+		Standard_Real uParaSurface;
+		Standard_Real vParaSurface;
+		gp_Vec uVectorSurface;
+		gp_Vec vVectorSurface;
 
 
-		BRepGProp gprop; 
-		GProp_GProps surfaceProps;
+		BRepFill_Filling filledFace;
+		filledFace.Add(edges[0],GeomAbs_C0);
+		filledFace.Add(horizontalBaseEdge,GeomAbs_C0);
+		filledFace.Build();
+		TopoDS_Face fillFace=filledFace.Face();
 
-		gprop.LinearProperties(importedWire,surfaceProps);
+		BRepAdaptor_Surface aface(fillFace);
+		aface.D1(uParaSurface,vParaSurface,dividePnt,uVectorSurface,vVectorSurface);
 
-		double length=surfaceProps.Mass();
+		gp_Vec normal=uVectorSurface.Crossed(vVectorSurface);
+
+
+		
+		horizontalBaseLine->D1(basePara2*ratio,dividePnt,devidePointVec);
+		
+		BRepBuilderAPI_MakeVertex divideVertex(dividePnt);
+
+
+		gp_Dir dir(uVectorSurface); 
+		gp_Lin testLine(dividePnt,dir);
+
+		TopoDS_Edge testEdge= BRepBuilderAPI_MakeEdge(testLine);
+
+		TopoDS_Wire testWire=BRepBuilderAPI_MakeWire(testEdge);
+		TopoDS_Shape testShape=testWire;
+
+
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,testEdge);
+
+		//gp_Trsf
+
+		
+		gp_Dir xDir(1,0,0);
+		gp_Ax1 xAxis(dividePnt, xDir);
+		//BRepPrimAPI_MakeRevol revol(testShape,xAxis);  
+		//revol.Build();
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,revol.Shape());
 
 
 		//TopoDS_Edge importedEdge=TopoDS::Edge(importedWire);
@@ -308,10 +347,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Vec V3;
 		Handle_Geom_Curve curve= BRep_Tool::Curve(edges[0],U1, U2);
 
+
+
 		//	Handle_Geom_BSplineCurve splineCurve=BRep_Tool::Curve(edges[0],U1,U2);
 
 		Handle(Geom_BSplineCurve) splineCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
-
 		Handle(Geom_BSplineCurve) splineBase1 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
 
 		Handle(Geom_BSplineCurve) splineBase2 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
@@ -323,8 +363,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		splineBase1->Segment(0,47);
 
 		splineBase2->Segment(131,U2);
-
-
 
 		TopoDS_Edge splineEdge= BRepBuilderAPI_MakeEdge(splineCurve);
 		TopoDS_Edge baseEdge1= BRepBuilderAPI_MakeEdge(splineBase1);
@@ -346,7 +384,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 			Standard_Real U=i;
 			curve->D1(U,pnt,V1);
-
 			Standard_Real x=V1.X();
 
 
@@ -397,9 +434,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 
 		m_pcoloredshapeList->Display(myAISContext);
-		Fit();
+		//Fit();
 
 	}
+
+
 
 	void CImportExportDoc::OnImportVolute()
 	{

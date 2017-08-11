@@ -26,6 +26,9 @@
 #include <iostream>  
 #include <string>  
 #include <Geom_BSplineCurve.hxx>
+#include <BRepFill_Filling.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
+#include <BRepAdaptor_Surface.hxx>
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
