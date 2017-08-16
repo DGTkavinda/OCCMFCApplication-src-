@@ -295,6 +295,8 @@ TopoDS_Wire CVoluteDialog:: createNewShapeWithRightArea(double height,double wid
 	double variationTolerance=expectedArea*0.001;
 	double heightVariation=height*0.5;
 	double r1Height;
+	
+
 
 	r1Height=height*2;
 	gp_Pnt r1(width/2.,height*2.,0);

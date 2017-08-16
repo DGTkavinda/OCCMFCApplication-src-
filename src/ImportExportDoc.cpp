@@ -228,19 +228,252 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	}
 
 
+	
+
+	gp_Pnt CImportExportDoc::getMinimumDistancePoint(TopoDS_Edge edge1,TopoDS_Edge edge2)
+	{
+
+		TopoDS_Wire wire1=BRepBuilderAPI_MakeWire(edge1);
+		TopoDS_Wire wire2=BRepBuilderAPI_MakeWire(edge2);
+
+
+		BRepExtrema_DistShapeShape minimumDist(wire1,wire2,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+		gp_Pnt divideIntersectionPointOnCurve=minimumDist.PointOnShape1(1);
+		
+		return divideIntersectionPointOnCurve;
+	}
+
+	TopoDS_Wire CImportExportDoc::createSplitter(double dividePointPara,double topWidth,double bottomWidth,double height,TopoDS_Wire importedWire )
+	{
+	
+
+		double leftStartParaOfSplitterOnBase;
+		double rightStartParaOfSplitterOnBase;
+
+		leftStartParaOfSplitterOnBase=dividePointPara-(topWidth/20);
+		rightStartParaOfSplitterOnBase=dividePointPara+(topWidth/20);
+
+		TopoDS_Edge edges[4];
+		TopExp_Explorer anEdgeExplorer(importedWire, TopAbs_EDGE);
+		int i=0;
+		while(anEdgeExplorer.More()){
+			TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+			edges[i]=anEdge;
+			anEdgeExplorer.Next();
+			i++;
+
+		}
+
+		TopoDS_Edge importedEdge=edges[0];
+
+		Standard_Real U1=0;
+		Standard_Real U2=1;
+		Standard_Real uParaOfIntersectionPoint;
+
+		gp_Pnt pnt;
+		gp_Vec V1;
+		gp_Vec V2;
+		gp_Vec V3;
+		Handle_Geom_Curve curve= BRep_Tool::Curve(importedEdge,U1, U2);
+
+		TopoDS_Vertex vertex[2];
+		TopExp_Explorer vertexExplorer(importedWire,TopAbs_VERTEX);
+		int j=0;
+		while(vertexExplorer.More()){
+			TopoDS_Vertex aVertex =TopoDS::Vertex(vertexExplorer.Current());
+			vertex[j]=aVertex;
+			vertexExplorer.Next();
+			j++;
+
+		}
+
+		Standard_Real basePara1;
+		Standard_Real basePara2;
+		gp_Pnt dividePnt;
+
+		gp_Pnt leftStartOfSplitterOnBasePnt;
+		gp_Pnt rightStartOfSplitterOnBasePnt;
+
+
+		gp_Vec devidePointVec;
+
+		TopoDS_Edge horizontalBaseEdge=BRepBuilderAPI_MakeEdge(vertex[0],vertex[1]);
+		Handle_Geom_Curve horizontalBaseLine=BRep_Tool::Curve(horizontalBaseEdge,basePara1,basePara2);
+
+		Standard_Real uParaSurface;
+		Standard_Real vParaSurface;
+		gp_Vec uVectorSurface;
+		gp_Vec vVectorSurface;
+
+		BRepFill_Filling filledFace;
+		filledFace.Add(edges[0],GeomAbs_C0);
+		filledFace.Add(horizontalBaseEdge,GeomAbs_C0);
+		filledFace.Build();
+		TopoDS_Face fillFace=filledFace.Face();
+
+		BRepAdaptor_Surface aface(fillFace);
+		aface.D1(uParaSurface,vParaSurface,dividePnt,uVectorSurface,vVectorSurface);
+
+		horizontalBaseLine->D1(dividePointPara,dividePnt,devidePointVec);
+		horizontalBaseLine->D0(leftStartParaOfSplitterOnBase,leftStartOfSplitterOnBasePnt);
+		horizontalBaseLine->D0(rightStartParaOfSplitterOnBase,rightStartOfSplitterOnBasePnt);
+
+		BRepBuilderAPI_MakeVertex divideVertex(dividePnt);
+
+
+
+		Standard_Real leftTurningPntPara=U2*(44/U2);
+		Standard_Real rightTurningPntPara=U2*(44/U2)*3;
+
+		Handle(Geom_BSplineCurve) straitLeft = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) middleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) straitRight = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+		straitLeft->Segment(U1,leftTurningPntPara);
+		middleCurve->Segment(leftTurningPntPara,rightTurningPntPara);
+		straitRight->Segment(rightTurningPntPara,U2);
+
+		gp_Dir dir(uVectorSurface); 
+		gp_Lin areaDivideLine(dividePnt,dir);
+		gp_Lin leftSplitterStartLine(leftStartOfSplitterOnBasePnt,dir);
+		gp_Lin rightSplitterStartLine(rightStartOfSplitterOnBasePnt,dir);
+
+		TopoDS_Edge straitLeftBaseEdge=BRepBuilderAPI_MakeEdge(straitLeft);
+		TopoDS_Edge straitRightBaseEdge=BRepBuilderAPI_MakeEdge(straitRight);
+		TopoDS_Edge middleCurveEdge=BRepBuilderAPI_MakeEdge(middleCurve);
+
+		TopoDS_Edge areaDivideEdge= BRepBuilderAPI_MakeEdge(areaDivideLine);
+		TopoDS_Edge leftSplitterStartEdge=BRepBuilderAPI_MakeEdge(leftSplitterStartLine);
+		TopoDS_Edge rightSplitterStartEdge=BRepBuilderAPI_MakeEdge(rightSplitterStartLine);
+
+		gp_Pnt leftStartOfSplitterPnt=getMinimumDistancePoint(importedEdge,leftSplitterStartEdge);
+		gp_Pnt rightStartOfSplitterPnt=getMinimumDistancePoint(importedEdge,rightSplitterStartEdge);
+
+		GeomLib_Tool::Parameter(curve,leftStartOfSplitterPnt,1,uParaOfIntersectionPoint);
+		Handle(Geom_BSplineCurve) leftPartOfMiddleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		leftPartOfMiddleCurve->Segment(leftTurningPntPara,uParaOfIntersectionPoint);
+
+		GeomLib_Tool::Parameter(curve,rightStartOfSplitterPnt,1,uParaOfIntersectionPoint);
+		Handle(Geom_BSplineCurve) rightPartOfMiddleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		rightPartOfMiddleCurve->Segment(uParaOfIntersectionPoint,rightTurningPntPara);
+
+		TopoDS_Edge leftPartOfMiddleCurveEdge=BRepBuilderAPI_MakeEdge(leftPartOfMiddleCurve);
+		TopoDS_Edge rightPartOfMiddleCurveEdge=BRepBuilderAPI_MakeEdge(rightPartOfMiddleCurve);
+
+
+
+
+
+
+
+
+		TopoDS_Wire testWire=BRepBuilderAPI_MakeWire(areaDivideEdge);
+
+		gp_Pnt divideIntersectionPointOnCurve=getMinimumDistancePoint(importedEdge,areaDivideEdge);
+		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(divideIntersectionPointOnCurve);
+
+
+
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,leftSplitterStartEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,rightSplitterStartEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitLeftBaseEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitRightBaseEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,leftPartOfMiddleCurveEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,rightPartOfMiddleCurveEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,testWire);
+		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,horizontalBaseEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,intersectionVertexOnCurve);
+
+		m_pcoloredshapeList->Display(myAISContext);
+		Fit();
+		return importedWire;
+	
+	}
+
+	TopoDS_Wire CImportExportDoc::createLeftPartOfDualVoluteWire(double ratio,double dividePointUParameter,TopoDS_Wire importedWire){
+
+
+		TopoDS_Edge edges[4];
+		TopExp_Explorer anEdgeExplorer(importedWire, TopAbs_EDGE);
+		int i=0;
+		while(anEdgeExplorer.More()){
+			TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+			edges[i]=anEdge;
+			anEdgeExplorer.Next();
+			i++;
+
+		}
+
+		TopoDS_Edge importedEdge=edges[0];
+
+		TopoDS_Vertex vertex[2];
+		TopExp_Explorer vertexExplorer(importedEdge,TopAbs_VERTEX);
+		int j=0;
+		while(vertexExplorer.More()){
+			TopoDS_Vertex aVertex =TopoDS::Vertex(vertexExplorer.Current());
+			vertex[j]=aVertex;
+			vertexExplorer.Next();
+			j++;
+		}
+
+		Standard_Real basePara1;
+		Standard_Real basePara2;
+		gp_Pnt dividePnt;
+		gp_Vec devidePointVec;
+
+		TopoDS_Edge horizontalBaseEdge=BRepBuilderAPI_MakeEdge(vertex[0],vertex[1]);
+		Handle_Geom_Curve horizontalBaseLine=BRep_Tool::Curve(horizontalBaseEdge,basePara1,basePara2);
+
+		Standard_Real uParaSurface;
+		Standard_Real vParaSurface;
+		gp_Vec uVectorSurface;
+		gp_Vec vVectorSurface;
+
+		BRepFill_Filling filledFace;
+		filledFace.Add(importedEdge,GeomAbs_C0);
+		filledFace.Add(horizontalBaseEdge,GeomAbs_C0);
+		filledFace.Build();
+		TopoDS_Face fillFace=filledFace.Face();
+
+		BRepAdaptor_Surface aface(fillFace);
+		aface.D1(uParaSurface,vParaSurface,dividePnt,uVectorSurface,vVectorSurface);
+
+		horizontalBaseLine->D1(dividePointUParameter,dividePnt,devidePointVec);
+
+		BRepBuilderAPI_MakeVertex divideVertex(dividePnt);
+		gp_Dir dir(uVectorSurface); 
+		gp_Lin testLine(dividePnt,dir);
+
+		TopoDS_Edge testEdge= BRepBuilderAPI_MakeEdge(testLine);
+
+		TopoDS_Wire DivideWire=BRepBuilderAPI_MakeWire(testEdge);
+		TopoDS_Shape testShape=DivideWire;
+
+		BRepExtrema_DistShapeShape minimumDist(importedWire,DivideWire,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+
+		gp_Pnt intersectionPointOnCurve=minimumDist.PointOnShape1(1);
+
+		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(intersectionPointOnCurve);
+
+		TopoDS_Edge middleEdge=BRepBuilderAPI_MakeEdge(dividePnt,intersectionPointOnCurve);
+
+		return importedWire;
+	}
 
 	void CImportExportDoc::OnDualVolute()
 	{
 
-
-		double area1Percentage;
-		double area2Percentage;
+		double leftAreaPercentage;
+		double rightAreaPercentage;
 		double ratio;
+		double wholeWireSurfaceArea;
+		double leftWireExpectedArea;
+		double rightWireExpectedArea;
 
-		area1Percentage=40;
-		area2Percentage=60;
+		leftAreaPercentage=20;
+		rightAreaPercentage=80;
 
-		ratio=area1Percentage/100;
+		ratio=leftAreaPercentage/100;
 
 		TopoDS_Shape importedShape;
 
@@ -272,10 +505,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 			vertex[j]=aVertex;
 			vertexExplorer.Next();
 			j++;
+
 		}
-
-
-
 
 		Standard_Real basePara1;
 		Standard_Real basePara2;
@@ -285,14 +516,10 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Edge horizontalBaseEdge=BRepBuilderAPI_MakeEdge(vertex[0],vertex[1]);
 		Handle_Geom_Curve horizontalBaseLine=BRep_Tool::Curve(horizontalBaseEdge,basePara1,basePara2);
 
-		
-
-
 		Standard_Real uParaSurface;
 		Standard_Real vParaSurface;
 		gp_Vec uVectorSurface;
 		gp_Vec vVectorSurface;
-
 
 		BRepFill_Filling filledFace;
 		filledFace.Add(edges[0],GeomAbs_C0);
@@ -303,30 +530,16 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		BRepAdaptor_Surface aface(fillFace);
 		aface.D1(uParaSurface,vParaSurface,dividePnt,uVectorSurface,vVectorSurface);
 
-		gp_Vec normal=uVectorSurface.Crossed(vVectorSurface);
-
-
-		
 		horizontalBaseLine->D1(basePara2*ratio,dividePnt,devidePointVec);
-		
 		BRepBuilderAPI_MakeVertex divideVertex(dividePnt);
-
-
-		gp_Dir dir(uVectorSurface); 
+		gp_Dir dir(1,0,0); 
 		gp_Lin testLine(dividePnt,dir);
-
 		TopoDS_Edge testEdge= BRepBuilderAPI_MakeEdge(testLine);
 
 		TopoDS_Wire testWire=BRepBuilderAPI_MakeWire(testEdge);
 		TopoDS_Shape testShape=testWire;
 
-
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,testEdge);
-
-		//gp_Trsf
-
-		
-		gp_Dir xDir(1,0,0);
+		gp_Dir xDir(0,1,0);
 		gp_Ax1 xAxis(dividePnt, xDir);
 		//BRepPrimAPI_MakeRevol revol(testShape,xAxis);  
 		//revol.Build();
@@ -334,12 +547,24 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,revol.Shape());
 
 
+
+		BRepExtrema_DistShapeShape minimumDist(importedWire,testWire,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+
+		gp_Pnt intersectionPointOnCurve=minimumDist.PointOnShape1(1);
+
+		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(intersectionPointOnCurve);
+
+
+		TopoDS_Wire splitteWire=createSplitter(basePara2*ratio,60,2,0.5,importedWire);
+
+		//Standard_Real distValue=minimumDist.DistValue();
 		//TopoDS_Edge importedEdge=TopoDS::Edge(importedWire);
 
 		//double U1=0;
 		//double U2=1;
 		Standard_Real U1=0;
 		Standard_Real U2=1;
+		Standard_Real uParaOfIntersectionPoint;
 
 		gp_Pnt pnt;
 		gp_Vec V1;
@@ -348,6 +573,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		Handle_Geom_Curve curve= BRep_Tool::Curve(edges[0],U1, U2);
 
 
+		GeomAPI_ProjectPointOnCurve projection(intersectionPointOnCurve,curve);
+
+		Quantity_Parameter uParaOfIntersection=projection.Parameter(1);
+
+		GeomLib_Tool::Parameter(curve,intersectionPointOnCurve,1,uParaOfIntersectionPoint);
 
 		//	Handle_Geom_BSplineCurve splineCurve=BRep_Tool::Curve(edges[0],U1,U2);
 
@@ -355,6 +585,10 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		Handle(Geom_BSplineCurve) splineBase1 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
 
 		Handle(Geom_BSplineCurve) splineBase2 = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) leftSegmentOfCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) rightSegmentOfCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+
 
 		//Handle_Geom_BSplineCurve splineCurve= Handle_Geom_BSplineCurve::DownCast(curve->Copy());
 
@@ -364,14 +598,41 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		splineBase2->Segment(131,U2);
 
+		leftSegmentOfCurve->Segment(U1,uParaOfIntersectionPoint);
+		rightSegmentOfCurve->Segment(uParaOfIntersectionPoint,U2);
+
 		TopoDS_Edge splineEdge= BRepBuilderAPI_MakeEdge(splineCurve);
 		TopoDS_Edge baseEdge1= BRepBuilderAPI_MakeEdge(splineBase1);
 		TopoDS_Edge baseEdge2=BRepBuilderAPI_MakeEdge(splineBase2);
 
+
+
+		Standard_Real leftTurningPntPara=U2*(44/U2);
+		Standard_Real rightTurningPntPara=U2*(44/U2)*3;
+
+		
+		
+		Handle(Geom_BSplineCurve) straitLeft = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) middleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+		Handle(Geom_BSplineCurve) straitRight = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
+
+		straitLeft->Segment(U1,leftTurningPntPara);
+		middleCurve->Segment(leftTurningPntPara,rightTurningPntPara);
+		straitRight->Segment(rightTurningPntPara,U2);
+
+		TopoDS_Edge straitLeftEdge=BRepBuilderAPI_MakeEdge(straitLeft);
+		TopoDS_Edge straitRightEdge=BRepBuilderAPI_MakeEdge(straitRight);
+		TopoDS_Edge middleCurveEdge=BRepBuilderAPI_MakeEdge(middleCurve);
+
+		//TopoDS_Edge leftSegmentOfCurveEdge=BRepBuilderAPI_MakeEdge(leftSegmentOfCurve);
+		//TopoDS_Edge rightSegmentOfCurveEdge=BRepBuilderAPI_MakeEdge(rightSegmentOfCurve);
+
+		curve->D0(uParaOfIntersectionPoint,intersectionPointOnCurve);
+
 		CString str;
-		str.Format(_T("U1,U2 %g \n"),U1);
+		//str.Format(_T("dist %g \n"),distValue);
 		CString str1;
-		str1.Format(_T("U1,U2 %g \n"),U2);
+		str1.Format(_T("upara %g \n"), uParaOfIntersectionPoint);
 
 		AfxMessageBox(str+str1);
 
@@ -381,17 +642,12 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		for(int i=0; i<U2;i++){
 
-
 			Standard_Real U=i;
 			curve->D1(U,pnt,V1);
 			Standard_Real x=V1.X();
 
-
-
 			out<<"\n  U   : "<<U<<endl;
 			out<<" v1 : "<<x<<endl;
-
-
 		}
 
 
@@ -414,27 +670,30 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		//{
 
 
-		Standard_Real turningPnt=U2*(41/U2);
+		Standard_Real turningPnt=U2*(44/U2);
+		Standard_Real turningPnt2=U2*(44/U2)*3;
 
 		curve->D1(turningPnt,pnt,V1);
-
 		BRepBuilderAPI_MakeVertex vert(pnt);
 
+		curve->D1(turningPnt2,pnt,V1);
 
-
+		BRepBuilderAPI_MakeVertex vert2(pnt);
 
 		//m_pcoloredshapeList->Add(Quantity_NOC_BLACK,edges[0]);
 
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,splineEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,baseEdge1);
-		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,baseEdge2);
-		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,horizontalBaseEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,splineEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,baseEdge1);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,vert);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,vert2);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,horizontalBaseEdge);
 
-		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,vert);
+		//m_pcoloredshapeList->Add(Quantity_NOC_IVORY,importedWire);
+		//m_pcoloredshapeList->Add(Quantity_NOC_IVORY,leftSegmentOfCurveEdge);
 
 
 		m_pcoloredshapeList->Display(myAISContext);
-		//Fit();
+		Fit();
 
 	}
 

@@ -29,6 +29,10 @@
 #include <BRepFill_Filling.hxx>
 #include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepAdaptor_Surface.hxx>
+#include <BRepExtrema_DistanceSS.hxx>
+#include <BRepExtrema_DistShapeShape.hxx>
+#include <GeomAPI_ProjectPointOnCurve.hxx>
+#include <GeomLib_Tool.hxx>
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
@@ -57,6 +61,11 @@ public:
 	TopoDS_Wire createNewShapeAccordingToR1height(double,double,double,double,double);
 	gp_Pnt getCentrePoint(TopoDS_Wire);
 	TopoDS_Wire createOuterShell(double,double,double,double,double);
+
+	TopoDS_Wire createLeftPartOfDualVoluteWire(double,double,TopoDS_Wire);
+	TopoDS_Edge* splitCurveInToSegments(TopoDS_Wire);
+	TopoDS_Wire createSplitter(double,double,double,double,TopoDS_Wire);
+	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge); 
 
 // Implementation
 #ifdef _DEBUG
@@ -106,6 +115,7 @@ protected:
 	CColoredShapes* m_pcoloredshapeList;
 	BRepPrimAPI_MakeBox* boxPointer; //= new BRepPrimAPI_MakeBox();
 	CVoluteDialog* voluteDlg;
+	
 	
 	
 
