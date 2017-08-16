@@ -228,7 +228,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	}
 
 
-	
+
 
 	gp_Pnt CImportExportDoc::getMinimumDistancePoint(TopoDS_Edge edge1,TopoDS_Edge edge2)
 	{
@@ -239,19 +239,25 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		BRepExtrema_DistShapeShape minimumDist(wire1,wire2,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
 		gp_Pnt divideIntersectionPointOnCurve=minimumDist.PointOnShape1(1);
-		
+
 		return divideIntersectionPointOnCurve;
 	}
 
-	TopoDS_Wire CImportExportDoc::createSplitter(double dividePointPara,double topWidth,double bottomWidth,double height,TopoDS_Wire importedWire )
+	TopoDS_Wire CImportExportDoc::createSplitter(double dividePointPara,double topWidth,double bottomWidth,double heightRatio,TopoDS_Wire importedWire )
 	{
-	
+
 
 		double leftStartParaOfSplitterOnBase;
 		double rightStartParaOfSplitterOnBase;
 
+		double bottomWidthLeftParaOnBase;
+		double bottomWidthRightParaOnBase;
+
 		leftStartParaOfSplitterOnBase=dividePointPara-(topWidth/20);
 		rightStartParaOfSplitterOnBase=dividePointPara+(topWidth/20);
+
+		bottomWidthLeftParaOnBase=dividePointPara-(bottomWidth/20);
+		bottomWidthRightParaOnBase=dividePointPara+(bottomWidth/20);
 
 		TopoDS_Edge edges[4];
 		TopExp_Explorer anEdgeExplorer(importedWire, TopAbs_EDGE);
@@ -265,7 +271,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		}
 
 		TopoDS_Edge importedEdge=edges[0];
-
 		Standard_Real U1=0;
 		Standard_Real U2=1;
 		Standard_Real uParaOfIntersectionPoint;
@@ -293,6 +298,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		gp_Pnt leftStartOfSplitterOnBasePnt;
 		gp_Pnt rightStartOfSplitterOnBasePnt;
+		gp_Pnt bottomWidthLeftPntOnBase;
+		gp_Pnt bottomWidthRightPntOnBase;
 
 
 		gp_Vec devidePointVec;
@@ -317,10 +324,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		horizontalBaseLine->D1(dividePointPara,dividePnt,devidePointVec);
 		horizontalBaseLine->D0(leftStartParaOfSplitterOnBase,leftStartOfSplitterOnBasePnt);
 		horizontalBaseLine->D0(rightStartParaOfSplitterOnBase,rightStartOfSplitterOnBasePnt);
+		horizontalBaseLine->D0(bottomWidthLeftParaOnBase,bottomWidthLeftPntOnBase);
+		horizontalBaseLine->D0(bottomWidthRightParaOnBase,bottomWidthRightPntOnBase);
+
 
 		BRepBuilderAPI_MakeVertex divideVertex(dividePnt);
-
-
 
 		Standard_Real leftTurningPntPara=U2*(44/U2);
 		Standard_Real rightTurningPntPara=U2*(44/U2)*3;
@@ -337,6 +345,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Lin areaDivideLine(dividePnt,dir);
 		gp_Lin leftSplitterStartLine(leftStartOfSplitterOnBasePnt,dir);
 		gp_Lin rightSplitterStartLine(rightStartOfSplitterOnBasePnt,dir);
+		gp_Lin bottomWidthLeftLine(bottomWidthLeftPntOnBase,dir);
+		gp_Lin bottomWidthRightLine(bottomWidthRightPntOnBase,dir);
 
 		TopoDS_Edge straitLeftBaseEdge=BRepBuilderAPI_MakeEdge(straitLeft);
 		TopoDS_Edge straitRightBaseEdge=BRepBuilderAPI_MakeEdge(straitRight);
@@ -345,9 +355,14 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Edge areaDivideEdge= BRepBuilderAPI_MakeEdge(areaDivideLine);
 		TopoDS_Edge leftSplitterStartEdge=BRepBuilderAPI_MakeEdge(leftSplitterStartLine);
 		TopoDS_Edge rightSplitterStartEdge=BRepBuilderAPI_MakeEdge(rightSplitterStartLine);
+		TopoDS_Edge bottomWidthLeftEdge=BRepBuilderAPI_MakeEdge(bottomWidthLeftLine);
+		TopoDS_Edge bottomWidthRightEdge=BRepBuilderAPI_MakeEdge(bottomWidthRightLine);
 
 		gp_Pnt leftStartOfSplitterPnt=getMinimumDistancePoint(importedEdge,leftSplitterStartEdge);
 		gp_Pnt rightStartOfSplitterPnt=getMinimumDistancePoint(importedEdge,rightSplitterStartEdge);
+		gp_Pnt dividePntOnCurve=getMinimumDistancePoint(importedEdge,areaDivideEdge);
+		gp_Pnt bottomWidthLeftPntOnCurve=getMinimumDistancePoint(importedEdge,bottomWidthLeftEdge);
+		gp_Pnt bottomWidthRightPntOnCurve=getMinimumDistancePoint(importedEdge,bottomWidthRightEdge);
 
 		GeomLib_Tool::Parameter(curve,leftStartOfSplitterPnt,1,uParaOfIntersectionPoint);
 		Handle(Geom_BSplineCurve) leftPartOfMiddleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
@@ -360,10 +375,35 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Edge leftPartOfMiddleCurveEdge=BRepBuilderAPI_MakeEdge(leftPartOfMiddleCurve);
 		TopoDS_Edge rightPartOfMiddleCurveEdge=BRepBuilderAPI_MakeEdge(rightPartOfMiddleCurve);
 
+		TopoDS_Edge lineToGetBottomLeftPointOfSplitter=BRepBuilderAPI_MakeEdge(bottomWidthLeftPntOnBase,bottomWidthLeftPntOnCurve);
+		TopoDS_Edge lineToGetBottomRightPointOfSplitter=BRepBuilderAPI_MakeEdge(bottomWidthRightPntOnBase,bottomWidthRightPntOnCurve);
+
+		double voluteHeight=dividePnt.Distance(dividePntOnCurve);
+		double splitterHeight=voluteHeight-(voluteHeight*heightRatio);
+
+		Handle_Geom_Curve curveToGetBottomLeftPointOfSplitter=BRep_Tool::Curve(lineToGetBottomLeftPointOfSplitter,basePara1,basePara2);
+		Handle_Geom_Curve curveToGetBottomRightPointOfSplitter=BRep_Tool::Curve(lineToGetBottomRightPointOfSplitter,basePara1,basePara2);
+
+		gp_Pnt leftBottomPointOfSplitter;
+		gp_Pnt rightBottomPointOfSplitter;
+
+		curveToGetBottomLeftPointOfSplitter->D0(splitterHeight,leftBottomPointOfSplitter);
+		curveToGetBottomRightPointOfSplitter->D0(splitterHeight,rightBottomPointOfSplitter);
+
+		TopoDS_Vertex bottomVert1=BRepBuilderAPI_MakeVertex(leftBottomPointOfSplitter);
+		TopoDS_Vertex bottomVert2=BRepBuilderAPI_MakeVertex(rightBottomPointOfSplitter);
+		TopoDS_Edge leftSplitterEdge=BRepBuilderAPI_MakeEdge(leftStartOfSplitterPnt,leftBottomPointOfSplitter);
+		TopoDS_Edge rightSplitterEdge=BRepBuilderAPI_MakeEdge(rightStartOfSplitterPnt,rightBottomPointOfSplitter);
 
 
 
 
+
+		/*CString str;
+		CString str1;
+		str1.Format(_T("volute height %g \n"), voluteHeight);
+		str.Format(_T("volute height distance method %g \n"), voluteheight2);
+		AfxMessageBox(str1+str);*/
 
 
 
@@ -373,13 +413,21 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(divideIntersectionPointOnCurve);
 
 
+	;
 
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,leftSplitterStartEdge);
 		//m_pcoloredshapeList->Add(Quantity_NOC_RED,rightSplitterStartEdge);
+
 		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitLeftBaseEdge);
 		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitRightBaseEdge);
 		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,leftPartOfMiddleCurveEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,rightPartOfMiddleCurveEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,rightPartOfMiddleCurveEdge);
+
+		m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,leftSplitterEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,rightSplitterEdge);
+
+
+
+
 		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,testWire);
 		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,horizontalBaseEdge);
 		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,intersectionVertexOnCurve);
@@ -387,7 +435,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		m_pcoloredshapeList->Display(myAISContext);
 		Fit();
 		return importedWire;
-	
+
 	}
 
 	TopoDS_Wire CImportExportDoc::createLeftPartOfDualVoluteWire(double ratio,double dividePointUParameter,TopoDS_Wire importedWire){
@@ -555,7 +603,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(intersectionPointOnCurve);
 
 
-		TopoDS_Wire splitteWire=createSplitter(basePara2*ratio,60,2,0.5,importedWire);
+		TopoDS_Wire splitteWire=createSplitter(basePara2*ratio,60,20,0.5,importedWire);
 
 		//Standard_Real distValue=minimumDist.DistValue();
 		//TopoDS_Edge importedEdge=TopoDS::Edge(importedWire);
@@ -610,8 +658,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		Standard_Real leftTurningPntPara=U2*(44/U2);
 		Standard_Real rightTurningPntPara=U2*(44/U2)*3;
 
-		
-		
+
+
 		Handle(Geom_BSplineCurve) straitLeft = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
 		Handle(Geom_BSplineCurve) middleCurve = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
 		Handle(Geom_BSplineCurve) straitRight = Handle(Geom_BSplineCurve)::DownCast(curve->Copy());
