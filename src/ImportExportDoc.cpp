@@ -246,13 +246,14 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	TopoDS_Wire CImportExportDoc::createSplitter(double dividePointPara,double topWidth,double bottomWidth,double heightRatio,TopoDS_Wire importedWire )
 	{
 
-
 		double leftStartParaOfSplitterOnBase;
 		double rightStartParaOfSplitterOnBase;
 
 		double bottomWidthLeftParaOnBase;
 		double bottomWidthRightParaOnBase;
 
+		double tipRadius=15;
+		double topRadius=3;
 		leftStartParaOfSplitterOnBase=dividePointPara-(topWidth/20);
 		rightStartParaOfSplitterOnBase=dividePointPara+(topWidth/20);
 
@@ -383,19 +384,84 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 		Handle_Geom_Curve curveToGetBottomLeftPointOfSplitter=BRep_Tool::Curve(lineToGetBottomLeftPointOfSplitter,basePara1,basePara2);
 		Handle_Geom_Curve curveToGetBottomRightPointOfSplitter=BRep_Tool::Curve(lineToGetBottomRightPointOfSplitter,basePara1,basePara2);
+		Handle_Geom_Curve curveToGetBottomCentrePointOfSplitter=BRep_Tool::Curve(areaDivideEdge,basePara1,basePara2);
 
 		gp_Pnt leftBottomPointOfSplitter;
 		gp_Pnt rightBottomPointOfSplitter;
+		gp_Pnt centreBottomPointOfSplitter;
 
 		curveToGetBottomLeftPointOfSplitter->D0(splitterHeight,leftBottomPointOfSplitter);
 		curveToGetBottomRightPointOfSplitter->D0(splitterHeight,rightBottomPointOfSplitter);
+		curveToGetBottomCentrePointOfSplitter->D0(splitterHeight,centreBottomPointOfSplitter);
 
-		TopoDS_Vertex bottomVert1=BRepBuilderAPI_MakeVertex(leftBottomPointOfSplitter);
-		TopoDS_Vertex bottomVert2=BRepBuilderAPI_MakeVertex(rightBottomPointOfSplitter);
 		TopoDS_Edge leftSplitterEdge=BRepBuilderAPI_MakeEdge(leftStartOfSplitterPnt,leftBottomPointOfSplitter);
 		TopoDS_Edge rightSplitterEdge=BRepBuilderAPI_MakeEdge(rightStartOfSplitterPnt,rightBottomPointOfSplitter);
 
+		gp_Vec normalVec=uVectorSurface.Crossed(vVectorSurface);
+		gp_Dir dir2(normalVec);
+		gp_Ax2 axisForTipEllipse(centreBottomPointOfSplitter,dir2);
 
+		gp_Elips tipEllipse(axisForTipEllipse,tipRadius/10,bottomWidth/20);//error when raduis<width/2
+
+		Handle(Geom_TrimmedCurve) tipellipseArc =GC_MakeArcOfEllipse(tipEllipse,leftBottomPointOfSplitter,rightBottomPointOfSplitter,true);
+
+
+		TopoDS_Vertex bottomVert1=BRepBuilderAPI_MakeVertex(leftBottomPointOfSplitter);
+		TopoDS_Vertex bottomVert2=BRepBuilderAPI_MakeVertex(rightBottomPointOfSplitter);
+		TopoDS_Vertex bottomVert3=BRepBuilderAPI_MakeVertex(centreBottomPointOfSplitter);
+
+		TopoDS_Vertex leftStartOfSplitterVert=BRepBuilderAPI_MakeVertex(leftStartOfSplitterPnt);
+		TopoDS_Vertex rightStartOfSplitterVert=BRepBuilderAPI_MakeVertex(rightStartOfSplitterPnt);
+
+		TopoDS_Edge elipsEdge=BRepBuilderAPI_MakeEdge(tipellipseArc);
+		
+		TopoDS_Wire baseWire=BRepBuilderAPI_MakeWire(straitLeftBaseEdge,horizontalBaseEdge,straitRightBaseEdge);
+		TopoDS_Edge divideEdge=BRepBuilderAPI_MakeEdge(dividePnt,dividePntOnCurve);
+
+
+		TopoDS_Edge leftPartOfMiddleCurveFilletedEdge;
+		TopoDS_Edge leftSplitterFilletedEdge;
+
+		gp_Pln filletPlane(dividePnt,dir2);
+		ChFi2d_FilletAPI leftFillet(leftPartOfMiddleCurveEdge,leftSplitterEdge,filletPlane);
+		leftFillet.Perform(topRadius);
+		TopoDS_Edge leftFilletEdge=leftFillet.Result(leftStartOfSplitterPnt,leftPartOfMiddleCurveFilletedEdge,leftSplitterFilletedEdge,-1);
+
+
+		TopoDS_Edge rightPartOfMiddleCurveFilletedEdge;
+		TopoDS_Edge rightSplitterFilletedEdge;
+
+		
+		ChFi2d_FilletAPI rightFillet(rightPartOfMiddleCurveEdge,rightSplitterEdge,filletPlane);
+		rightFillet.Perform(topRadius);
+		TopoDS_Edge rightFilletEdge=rightFillet.Result(rightStartOfSplitterPnt,rightPartOfMiddleCurveFilletedEdge,rightSplitterFilletedEdge,-1);
+
+
+		BRepBuilderAPI_MakeWire crossSectionWire;
+
+		crossSectionWire.Add(leftPartOfMiddleCurveFilletedEdge);
+		crossSectionWire.Add(leftFilletEdge);
+		crossSectionWire.Add(leftSplitterFilletedEdge);
+		crossSectionWire.Add(elipsEdge);
+		crossSectionWire.Add(rightSplitterFilletedEdge);
+		crossSectionWire.Add(rightFilletEdge);
+		crossSectionWire.Add(rightPartOfMiddleCurveFilletedEdge);
+		crossSectionWire.Add(baseWire);
+		
+		TopoDS_Wire completeCrossSection=crossSectionWire;
+
+		
+
+		TopoDS_Compound compoundWire;
+		BRep_Builder abuilder;
+		abuilder.MakeCompound(compoundWire);
+		abuilder.Add(compoundWire,divideEdge);
+		abuilder.Add(compoundWire,completeCrossSection);
+
+		BRepTools::Write( completeCrossSection,"D:/Breps/filletAdded2.brep");
+
+
+		//TopoDS_Edge leftFilletEdge=fillet.AddFillet(leftStartOfSplitterVert,0.03);
 
 
 
@@ -413,25 +479,33 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(divideIntersectionPointOnCurve);
 
 
-	;
+
 
 		//m_pcoloredshapeList->Add(Quantity_NOC_RED,rightSplitterStartEdge);
 
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitLeftBaseEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,straitRightBaseEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,leftPartOfMiddleCurveEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,rightPartOfMiddleCurveEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,straitLeftBaseEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,straitRightBaseEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,leftPartOfMiddleCurveEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,rightPartOfMiddleCurveEdge);
 
-		m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,leftSplitterEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,rightSplitterEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,bottomVert3);
+		//m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,leftSplitterEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_ORANGE,rightSplitterEdge);
+
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,elipsEdge);
+
+		////m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,testWire);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,horizontalBaseEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,intersectionVertexOnCurve);
+		
+		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,completeCrossSection);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,baseWire);
 
 
 
-
-		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,testWire);
-		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,horizontalBaseEdge);
-		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,intersectionVertexOnCurve);
-
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,rightSplitterFilletedEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,leftSplitterFilletedEdge);
 		m_pcoloredshapeList->Display(myAISContext);
 		Fit();
 		return importedWire;
@@ -603,7 +677,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Vertex intersectionVertexOnCurve=BRepBuilderAPI_MakeVertex(intersectionPointOnCurve);
 
 
-		TopoDS_Wire splitteWire=createSplitter(basePara2*ratio,60,20,0.5,importedWire);
+		TopoDS_Wire splitteWire=createSplitter(basePara2*ratio,60,20,0.3,importedWire);
 
 		//Standard_Real distValue=minimumDist.DistValue();
 		//TopoDS_Edge importedEdge=TopoDS::Edge(importedWire);
@@ -2227,15 +2301,50 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 	void CImportExportDoc::OnFilletDialog(){
 
 
-		//filletDialog = new CFilletDialog();
-		std::string s ="Test";
-
-		// filletDialog->Create( IDD_DIALOG2);
 
 
 
-		// filletDialog->ShowWindow(SW_SHOW);
+		TopoDS_Shape importedShape;
 
+		Handle(TopTools_HSequenceOfShape) aSeqOfShape = CImportExport::ReadBREP();
+		for(int i=1;i<= aSeqOfShape->Length();i++)
+		{
+			importedShape=aSeqOfShape->Value(i);
+
+		}
+
+		
+
+		TopoDS_Wire wires[150];
+
+		TopExp_Explorer anEdgeExplorer(importedShape, TopAbs_WIRE);
+		int i=0;
+		while(anEdgeExplorer.More()){
+			//TopoDS_Edge anEdge = TopoDS::Edge(anEdgeExplorer.Current());
+			TopoDS_Wire anEdge = TopoDS::Wire(anEdgeExplorer.Current());
+			wires[i]=anEdge;
+			m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,wires[i]);
+			anEdgeExplorer.Next();
+			i++;
+
+		}
+
+		double length=sizeof(wires);
+
+		CString str;
+		str.Format(_T("length g% :"),length);
+
+		AfxMessageBox(str);
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW, curve);
+		//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW, Elps);
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,wires[0]);
+		
+
+
+		m_pcoloredshapeList->Display(myAISContext);
+		Fit();
+		
 
 	}
 

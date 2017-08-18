@@ -33,6 +33,9 @@
 #include <BRepExtrema_DistShapeShape.hxx>
 #include <GeomAPI_ProjectPointOnCurve.hxx>
 #include <GeomLib_Tool.hxx>
+#include "GC_MakeArcOfEllipse.hxx"
+#include <BRepFilletAPI_MakeFillet2d.hxx>
+#include <ChFi2d_FilletAPI.hxx>
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
