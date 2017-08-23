@@ -107,6 +107,7 @@ BEGIN
     BUTTON      ID_BUTTON_Thickness2
     BUTTON      ID_BUTTON_ImportVolute
     BUTTON      ID_BUTTON_Dual_Volute
+    BUTTON      ID_BUTTON_Bearing_Volute
 END
 
 

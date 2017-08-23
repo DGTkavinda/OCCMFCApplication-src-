@@ -68,6 +68,7 @@ public:
 	TopoDS_Wire createLeftPartOfDualVoluteWire(double,double,TopoDS_Wire);
 	TopoDS_Edge* splitCurveInToSegments(TopoDS_Wire);
 	TopoDS_Wire createSplitter(double,double,double,double,TopoDS_Wire);
+	TopoDS_Wire createSplitterFromThreeEdges(double,double,double,double,TopoDS_Wire);
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge); 
 
 // Implementation
@@ -108,6 +109,7 @@ protected:
 	afx_msg void OnThickness2();
 	afx_msg void OnImportVolute();
 	afx_msg void OnDualVolute();
+	afx_msg void OnBearingVolute();
 	
 	
 	//}}AFX_MSG
