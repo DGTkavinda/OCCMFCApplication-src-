@@ -69,7 +69,8 @@ public:
 	TopoDS_Edge* splitCurveInToSegments(TopoDS_Wire);
 	TopoDS_Wire createSplitter(double,double,double,double,TopoDS_Wire);
 	TopoDS_Wire createSplitterFromThreeEdges(double,double,double,double,TopoDS_Wire);
-	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge); 
+	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge);
+	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 
 // Implementation
 #ifdef _DEBUG
