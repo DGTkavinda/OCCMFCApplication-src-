@@ -80,7 +80,7 @@ void CVoluteDialog::OnBnClicked1()
 	ang1Tan=tan(angle1*PI/180.0);
 	ang2Tan=tan(angle2*PI/180.0);
 	degree_0_percentage=20;
-	
+
 
 	CString str;
 
@@ -168,7 +168,7 @@ void CVoluteDialog::OnBnClicked1()
 
 		double intialCurveArea=getSurfaceArea(initialCurveWire);
 
-		
+
 		double ExpectedTrapeziumArea = initialTrapaziumArea*(degree_0_percentage/100);//user percentage of the 0 point area
 		double newTrapeziumHeight= getTrapezuimHeight(ExpectedTrapeziumArea,width,ang1Tan,ang2Tan);//calculating the height
 		double ExpectedCurveArea = intialCurveArea*(degree_0_percentage/100);
@@ -192,7 +192,8 @@ void CVoluteDialog::OnBnClicked1()
 		newWholeWire=TopoDS::Wire(rotatedShape);
 		sections.AddWire(newWholeWire);
 
-	
+
+
 
 
 		double areaIncreasingFactor=(100-degree_0_percentage)/18;
@@ -218,16 +219,16 @@ void CVoluteDialog::OnBnClicked1()
 			sections.AddWire(newWholeWire);
 
 			double newWholArea=getSurfaceArea(newWholeWire);
-		CString initialWholeAreaString;
-		CString expectedWholeAreaString;
-		CString newWholeAreaString;
-		CString msg;
-		initialWholeAreaString.Format(_T("initialWholeAreaString %g \n" ),initailWholeArea);
-		expectedWholeAreaString.Format(_T("expectedWholeAreaString %g \n"),expectedWholeArea);
-		newWholeAreaString.Format(_T("newWholeArea %g \n"),i1);
-		
-		msg=initialWholeAreaString+expectedWholeAreaString+newWholeAreaString;
-		//AfxMessageBox(msg);
+			CString initialWholeAreaString;
+			CString expectedWholeAreaString;
+			CString newWholeAreaString;
+			CString msg;
+			initialWholeAreaString.Format(_T("initialWholeAreaString %g \n" ),initailWholeArea);
+			expectedWholeAreaString.Format(_T("expectedWholeAreaString %g \n"),expectedWholeArea);
+			newWholeAreaString.Format(_T("newWholeArea %g \n"),i1);
+
+			msg=initialWholeAreaString+expectedWholeAreaString+newWholeAreaString;
+			//AfxMessageBox(msg);
 
 
 		}
@@ -266,7 +267,7 @@ void CVoluteDialog::OnBnClicked1()
 		TopoDS_Shape voluteAndExit=completeShape;
 
 		BRepTools::Write(voluteAndExit,"D:/Breps/whoaleShapewithExit.brep");	
-		
+
 		Handle(AIS_InteractiveObject) obj1 = (new AIS_Shape(voluteAndExit));
 
 		myAISContext->RemoveAll();
@@ -281,7 +282,7 @@ void CVoluteDialog::OnBnClicked1()
 		initialWholeAreaString.Format(_T("initialWholeAreaString %g \n" ),initailWholeArea);
 		expectedWholeAreaString.Format(_T("expectedWholeAreaString %g \n"),expectedWholeArea);
 		newWholeAreaString.Format(_T("newWholeArea %g \n"),newWireWholeArea);
-		
+
 		msg=initialWholeAreaString+expectedWholeAreaString+newWholeAreaString;
 		AfxMessageBox(msg);
 
@@ -295,7 +296,7 @@ TopoDS_Wire CVoluteDialog:: createNewShapeWithRightArea(double height,double wid
 	double variationTolerance=expectedArea*0.001;
 	double heightVariation=height*0.5;
 	double r1Height;
-	
+
 
 
 	r1Height=height*2;
