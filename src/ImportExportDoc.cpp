@@ -249,7 +249,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		double dividerAngle;
 		double exhaustThickness;
 		double bearingThickness;
-
+		
 
 		width=10*2;
 		bearingFlankHeightGap=1.763*2;
@@ -257,6 +257,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		bearingSideAngle=41;
 		exhaustSideAngle=30;
 		wholeVoluteArea=area;
+		
 		trapeziumWidth=sqrt(width*width+bearingFlankHeightGap*bearingFlankHeightGap);
 		trapeziumAngle=atan2(bearingFlankHeightGap,width)*180/PI;
 		//wholeVoluteTrapziumHeight=getTrapezuimHeight(wholeVoluteArea,trapeziumWidth,bearingSideAngle-trapeziumAngle,exhaustSideAngle+trapeziumAngle);
@@ -277,7 +278,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		double A1=exhaustSideAngle;
 		double A2=bearingSideAngle;
 		double alfa=trapeziumAngle;
-		double initialLengthOfOuterLine=width/5;
+		double initialLengthOfOuterLine=width/12;
 
 		double cosA1=cos(A1*PI/180);
 		double sinA1=sin(A1*PI/180);
@@ -607,7 +608,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		bearingFlankHeightGap=1.763*2;
 		bearingSideAngle=41;
 		exhaustSideAngle=30;
-		wholeVoluteArea=1000;
+		wholeVoluteArea=2000;
 		trapeziumWidth=sqrt(width*width+bearingFlankHeightGap*bearingFlankHeightGap);
 		trapeziumAngle=atan2(bearingFlankHeightGap,width)*180/PI;
 		//wholeVoluteTrapziumHeight=getTrapezuimHeight(wholeVoluteArea,trapeziumWidth,bearingSideAngle-trapeziumAngle,exhaustSideAngle+trapeziumAngle);
@@ -628,7 +629,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		double A1=exhaustSideAngle;
 		double A2=bearingSideAngle;
 		double alfa=trapeziumAngle;
-		double initialLengthOfOuterLine=width/2;
+		double initialLengthOfOuterLine=width/5;
 
 		double cosA1=cos(A1*PI/180);
 		double sinA1=sin(A1*PI/180);
@@ -804,7 +805,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 
 		gp_Pnt p1q1pointZero;
-		gp_Vec p1q1Vec1;
+		gp_Vec p1q1Vec1;//parallel Vector to base 
 		gp_Vec p1q1Vec2;
 
 		p1q1LineCurve->D2(U1,p1q1pointZero,p1q1Vec1,p1q1Vec2);
@@ -931,14 +932,12 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Trsf transfer;
 		gp_Ax1 rotationAxis(gp_Pnt(0,-width*5,0),gp_Dir(1,0,0));
 
-		int numberOfCrossSections=20;
+		int numberOfCrossSections=36;
 		double toungArea=wholeVoluteArea*0.01;
-		//TopoDS_Wire arrayOfCrossSections[20];
-
-		vector<TopoDS_Wire> vec;
+		TopoDS_Wire arrayOfCrossSections[36];
 		TopoDS_Wire newCrossSection;
-		double areaReductionRate=(wholeVoluteArea-toungArea)/20;
-		double rotationAngle=(360/20)*PI/180;
+		double areaReductionRate=(wholeVoluteArea-toungArea)/numberOfCrossSections;
+		double rotationAngle=(360/numberOfCrossSections)*PI/180;
 
 
 		double expectedArea=wholeVoluteArea-(areaReductionRate*0);
@@ -946,10 +945,10 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		transfer.SetRotation(rotationAxis,360*PI/180);
 		BRepBuilderAPI_Transform rotated(newCrossSection,transfer);
 		arrayOfCrossSections[0]=TopoDS::Wire(rotated.Shape());
-		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,arrayOfCrossSections[0]);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,arrayOfCrossSections[0]);
 		sections.AddWire(arrayOfCrossSections[0]);
 
-		for(int i=1;i<19;i++){
+		for(int i=1;i<=numberOfCrossSections-1;i++){
 
 			double expectedArea=wholeVoluteArea-(areaReductionRate*i);
 			newCrossSection=getDualVoluteCrossSection(expectedArea);
@@ -958,27 +957,106 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 			arrayOfCrossSections[i]=TopoDS::Wire(rotated.Shape());
 			sections.AddWire(arrayOfCrossSections[i]);
 			//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,arrayOfCrossSections[i]);
-
-
+			if(i==1){
+				//m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,newCrossSection);
+			}
 		}
 
-		double expectedArea1=wholeVoluteArea-(areaReductionRate*20);
+		double expectedArea1=wholeVoluteArea-(areaReductionRate*numberOfCrossSections);
 		newCrossSection=getDualVoluteCrossSection(expectedArea1); 
 		transfer.SetRotation(rotationAxis,360*PI/180);
 		BRepBuilderAPI_Transform rotated1(newCrossSection,transfer);
-		arrayOfCrossSections[19]=TopoDS::Wire(rotated1.Shape());
-		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,arrayOfCrossSections[19]);
-		sections.AddWire(arrayOfCrossSections[19]);
-
+		arrayOfCrossSections[numberOfCrossSections-1]=TopoDS::Wire(rotated1.Shape());
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,arrayOfCrossSections[35]);
+		
+		sections.AddWire(arrayOfCrossSections[numberOfCrossSections-1]);
 		sections.Build();
 		TopoDS_Shape finalShape(sections.Shape());
-
 		TopoDS_Wire completeCrossSectionWire=completeCrossSection;
+
+
+
+
+		double exitDividerWallWidth=6;
+		double exitPipeRadius=width*4;
+
+		Handle_Geom_Curve p2q2LineCurve=BRep_Tool::Curve(p2q2Edge,U1,U2);
+		gp_Pnt centrePointOfCircle;
+		p2q2LineCurve->D0(U2/2,centrePointOfCircle);
+
+		TopoDS_Vertex p2q2Vert=BRepBuilderAPI_MakeVertex(centrePointOfCircle); 
+
+		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Circ exitPipeCircle(exitePipeCircleAxis,exitPipeRadius);
+		TopoDS_Edge exitCircleEdge=BRepBuilderAPI_MakeEdge(exitPipeCircle);
+		gp_Vec vector1=divideLineVec;
+		gp_Dir exitDividerDir(vector1);
+
+		gp_Vec leftWidthVectorOfExit=leftBottomVector.Normalized();
+		leftWidthVectorOfExit.Multiply(exitDividerWallWidth/2);
+		gp_Pnt leftWidthPointOfExitPipe=centrePointOfCircle.Translated(leftWidthVectorOfExit);
+
+		gp_Vec rightWidthVectorOfExit=leftWidthVectorOfExit.Reversed();
+		gp_Pnt rightWidthPointOfExitPipe=centrePointOfCircle.Translated(rightWidthVectorOfExit);
+		
+
+		gp_Lin leftExitDividerLine(leftWidthPointOfExitPipe,exitDividerDir);
+		TopoDS_Edge leftExitDividerEdge = BRepBuilderAPI_MakeEdge(leftExitDividerLine);
+		TopoDS_Wire circleWire = BRepBuilderAPI_MakeWire(exitCircleEdge);
+		TopoDS_Wire leftdividerWire = BRepBuilderAPI_MakeWire(leftExitDividerEdge);
+		BRepExtrema_DistShapeShape LeftminimumDist(circleWire,leftdividerWire,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+		gp_Pnt topLeftExitPnt = LeftminimumDist.PointOnShape1(1);
+		gp_Pnt bottomLeftExitPnt = LeftminimumDist.PointOnShape1(2);
+		leftExitDividerEdge = BRepBuilderAPI_MakeEdge(topLeftExitPnt,bottomLeftExitPnt);
+		GC_MakeArcOfCircle leftExitCircleArc(exitPipeCircle,topLeftExitPnt,bottomLeftExitPnt,false);
+		Handle_Geom_TrimmedCurve leftExitCircleArcTrimmedCurve = leftExitCircleArc; 
+		TopoDS_Edge leftExitCircleArcEdge=BRepBuilderAPI_MakeEdge(leftExitCircleArcTrimmedCurve);
+
+
+		gp_Pln filletPlane(centrePointOfCircle,gp_Dir(0,0,1));
+
+		ChFi2d_FilletAPI leftTopFillet(leftExitCircleArcEdge,leftExitDividerEdge,filletPlane);
+		leftTopFillet.Perform(5);
+		TopoDS_Edge leftTopFilletEdge=leftTopFillet.Result(topLeftExitPnt,leftExitCircleArcEdge,leftExitDividerEdge,-1);
+
+		ChFi2d_FilletAPI leftBottomFillet(leftExitCircleArcEdge,leftExitDividerEdge,filletPlane);
+		leftBottomFillet.Perform(5);
+		TopoDS_Edge leftBottomFilletEdge=leftBottomFillet.Result(bottomLeftExitPnt,leftExitCircleArcEdge,leftExitDividerEdge,-1);
+
+
+		gp_Lin rightExitDividerLine(rightWidthPointOfExitPipe,exitDividerDir);
+		TopoDS_Edge rightExitDividerEdge=BRepBuilderAPI_MakeEdge(rightExitDividerLine);
+		TopoDS_Wire rightDividerWire=BRepBuilderAPI_MakeWire(rightExitDividerEdge);
+		BRepExtrema_DistShapeShape rightMinimumDist(circleWire,rightDividerWire,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+		gp_Pnt topRightExitPnt= rightMinimumDist.PointOnShape1(1);
+		gp_Pnt bottomRightExitPnt= rightMinimumDist.PointOnShape1(2);
+		rightExitDividerEdge=BRepBuilderAPI_MakeEdge(topRightExitPnt,bottomRightExitPnt);
+		GC_MakeArcOfCircle rightExitCircleArc(exitPipeCircle,bottomRightExitPnt,topRightExitPnt,false);
+		Handle_Geom_TrimmedCurve rightExitCircleArcTrimmedCurve = rightExitCircleArc;
+		TopoDS_Edge rightExitCircleArcEdge = BRepBuilderAPI_MakeEdge(rightExitCircleArcTrimmedCurve);
+		
+
+		//gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(0,0,1));
+		//gp_Circ topRightCircle(rightCircleAxis,topRightCircleRaduis);
+		//GC_MakeArcOfCircle topRightHalfOfCircle(topRightCircle,p1p2EndPoint,rightTopPointOfDividerWall,false);
 
 		//abuilder.Add(compound,divideEdge);
 		//BRepTools::Write( finalShape,"D:/Breps/dualVolutecompleteShape.brep");
 
-		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,finalShape);
+
+		//AfxMessageBox(NbSolutions);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,p2q2Vert);
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_RED,exitCircleEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,leftExitDividerEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,rightExitDividerEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,leftExitCircleArcEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,rightExitCircleArcEdge);
+		//m_pcoloredshapeList->Add(Quantity_NOC_IVORY,leftTopFilletEdge);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,leftBottomFilletEdge);
+		
+
+		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,finalShape);
 		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,compound);
 		//m_pcoloredshapeList->Add(Quantity_NOC_GREEN,p1p2Edge);
 		//m_pcoloredshapeList->Add(Quantity_NOC_RED,p1q1Edge);
@@ -1020,6 +1098,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 	}
 
+	
 	gp_Pnt CImportExportDoc::getMinimumDistancePoint(TopoDS_Edge edge,TopoDS_Vertex vertex)
 	{
 
@@ -1039,7 +1118,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Wire wire2=BRepBuilderAPI_MakeWire(edge2);
 
 
-		BRepExtrema_DistShapeShape minimumDist(wire1,wire2,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
+		BRepExtrema_DistShapeShape minimumDist(wire1,wire2,Extrema_ExtFlag_MIN,Extrema_ExtAlgo_Grad);
 		gp_Pnt divideIntersectionPointOnCurve=minimumDist.PointOnShape1(1);
 
 		return divideIntersectionPointOnCurve;

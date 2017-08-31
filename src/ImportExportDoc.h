@@ -36,7 +36,7 @@
 #include "GC_MakeArcOfEllipse.hxx"
 #include <BRepFilletAPI_MakeFillet2d.hxx>
 #include <ChFi2d_FilletAPI.hxx>
-#include <vector>;
+
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
@@ -73,6 +73,7 @@ public:
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge);
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 	TopoDS_Wire getDualVoluteCrossSection(double height);
+	TopoDS_Wire createExitPipeWithDivider(double);
 
 // Implementation
 #ifdef _DEBUG
