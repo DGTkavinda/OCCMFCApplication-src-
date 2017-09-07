@@ -36,7 +36,12 @@
 #include "GC_MakeArcOfEllipse.hxx"
 #include <BRepFilletAPI_MakeFillet2d.hxx>
 #include <ChFi2d_FilletAPI.hxx>
-
+#include <BRepAdaptor_Curve.hxx>
+#include <GeomConvert.hxx>
+#include <ChFi2d_AnaFilletAlgo.hxx>
+#include <ChFi2d_FilletAlgo.hxx>
+#include <BRepExtrema_ExtCC.hxx>
+#include <BRepExtrema_ExtPC.hxx>
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
@@ -52,7 +57,7 @@ public:
 		    			const Standard_Integer  y       ,
                         const Handle(V3d_View)& aView   ); 
 
-
+	
 	double getTrapezuimHeight(double,double,double,double);
 	 double getSurfaceArea(TopoDS_Wire);
 	double numberTesting();
@@ -74,6 +79,14 @@ public:
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 	TopoDS_Wire getDualVoluteCrossSection(double height);
 	TopoDS_Wire createExitPipeWithDivider(double);
+	double getMaximumHeight(TopoDS_Wire);
+	double getMaximumDist2Edges(TopoDS_Edge,TopoDS_Edge);
+	gp_Pnt getMaxDistancePointBetweenVertexAndEdge(TopoDS_Vertex,TopoDS_Edge);
+	TopoDS_Wire* getExitPipeSection();
+	void getExitPipeTrainsition(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt,double,gp_Vec,double,double,gp_Vec);//user difined angle
+	//void getExitPipeTrainsition(std::vector<TopoDS_Wire> &);
+	double getDividerWallMaximumWidth(TopoDS_Wire);
+	void getExitPipeEnding(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt,double,gp_Vec,double,double,gp_Vec);
 
 // Implementation
 #ifdef _DEBUG
