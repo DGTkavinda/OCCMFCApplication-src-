@@ -42,6 +42,10 @@
 #include <ChFi2d_FilletAlgo.hxx>
 #include <BRepExtrema_ExtCC.hxx>
 #include <BRepExtrema_ExtPC.hxx>
+#include <GeomConvert_BSplineCurveToBezierCurve.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepLib_FuseEdges.hxx>
+#include <GeomAPI_PointsToBSpline.hxx>
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
@@ -87,6 +91,9 @@ public:
 	//void getExitPipeTrainsition(std::vector<TopoDS_Wire> &);
 	double getDividerWallMaximumWidth(TopoDS_Wire);
 	void getExitPipeEnding(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt,double,gp_Vec,double,double,gp_Vec);
+	TopoDS_Edge convertTrimmToBezier(Handle_Geom_Curve,gp_Vec,gp_Vec,double);
+	void displayPoint(gp_Pnt);
+	void displayPoint( Quantity_NameOfColor,gp_Pnt);
 
 // Implementation
 #ifdef _DEBUG

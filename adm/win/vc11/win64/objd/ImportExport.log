@@ -3,32 +3,32 @@ D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(9)
           C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10477) : see previous definition of 'IDOK'
 D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(10): warning C4005: 'IDCANCEL' : macro redefinition
           C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10478) : see previous definition of 'IDCANCEL'
-..\..\..\src\ImportExportDoc.cpp(945): warning C4101: 'abuilder' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(1273): warning C4172: returning address of local variable or temporary
-..\..\..\src\ImportExportDoc.cpp(1320): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
-..\..\..\src\ImportExportDoc.cpp(1344): warning C4101: 'convert' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(1455): warning C4100: 'divideLineVec' : unreferenced formal parameter
-..\..\..\src\ImportExportDoc.cpp(1455): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
-..\..\..\src\ImportExportDoc.cpp(1477): warning C4101: 'convert' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(2140): warning C4100: 'ratio' : unreferenced formal parameter
-..\..\..\src\ImportExportDoc.cpp(2217): warning C4101: 'leftWireExpectedArea' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(2218): warning C4101: 'rightWireExpectedArea' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(2216): warning C4101: 'wholeWireSurfaceArea' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(2685): warning C4101: 'gprop' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(3189): warning C4101: 'gprop' : unreferenced local variable
-..\..\..\src\ImportExportDoc.cpp(3202): warning C4100: 'initialHieght' : unreferenced formal parameter
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2186): warning C4700: uninitialized local variable 'vParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2186): warning C4700: uninitialized local variable 'uParaSurface' used
+..\..\..\src\ImportExportDoc.cpp(615): warning C4101: 'convert' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(1058): warning C4101: 'abuilder' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(1386): warning C4172: returning address of local variable or temporary
+..\..\..\src\ImportExportDoc.cpp(1433): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
+..\..\..\src\ImportExportDoc.cpp(1457): warning C4101: 'convert' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(1561): warning C4100: 'divideLineVec' : unreferenced formal parameter
+..\..\..\src\ImportExportDoc.cpp(1583): warning C4101: 'convert' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(2246): warning C4100: 'ratio' : unreferenced formal parameter
+..\..\..\src\ImportExportDoc.cpp(2323): warning C4101: 'leftWireExpectedArea' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(2324): warning C4101: 'rightWireExpectedArea' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(2322): warning C4101: 'wholeWireSurfaceArea' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(2791): warning C4101: 'gprop' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(3295): warning C4101: 'gprop' : unreferenced local variable
+..\..\..\src\ImportExportDoc.cpp(3308): warning C4100: 'initialHieght' : unreferenced formal parameter
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2292): warning C4700: uninitialized local variable 'vParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2292): warning C4700: uninitialized local variable 'uParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2057): warning C4700: uninitialized local variable 'vParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2057): warning C4700: uninitialized local variable 'uParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1798): warning C4700: uninitialized local variable 'vParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1798): warning C4700: uninitialized local variable 'uParaSurface' used
 d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(392): warning C4700: uninitialized local variable 'vParaSurface' used
 d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(392): warning C4700: uninitialized local variable 'uParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1951): warning C4700: uninitialized local variable 'vParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1951): warning C4700: uninitialized local variable 'uParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1692): warning C4700: uninitialized local variable 'vParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(1692): warning C4700: uninitialized local variable 'uParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2278): warning C4700: uninitialized local variable 'vParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2278): warning C4700: uninitialized local variable 'uParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(610): warning C4700: uninitialized local variable 'width' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(749): warning C4700: uninitialized local variable 'vParaSurface' used
-d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(749): warning C4700: uninitialized local variable 'uParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2384): warning C4700: uninitialized local variable 'vParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(2384): warning C4700: uninitialized local variable 'uParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(725): warning C4700: uninitialized local variable 'width' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(864): warning C4700: uninitialized local variable 'vParaSurface' used
+d:\occt\opencascade-7.0.0\samples\mfc\standard\05_importexport\src\importexportdoc.cpp(864): warning C4700: uninitialized local variable 'uParaSurface' used
      Creating library ../../../../win64\vc11\bin\ImportExport.lib and object ../../../../win64\vc11\bin\ImportExport.exp
   ImportExport.vcxproj -> D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\../../../../win64\vc11\bin\ImportExport.exe
