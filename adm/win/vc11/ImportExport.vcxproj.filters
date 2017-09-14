@@ -32,6 +32,12 @@
     <ClCompile Include="..\..\..\src\VoluteDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="OCCVoluteTwoLobe.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DualVoluteDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\ColoredShapes.h">
@@ -53,6 +59,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\VoluteDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OCCVoluteTwoLobe.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DualVoluteDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -67,7 +67,7 @@ IDR_MAINFRAME           BITMAP                  "Toolbar.bmp"
 // Toolbar
 //
 
-IDR_MAINFRAME TOOLBAR 22, 15
+IDR_MAINFRAME TOOLBAR 22, 16
 BEGIN
     BUTTON      ID_FILE_NEW
     SEPARATOR
@@ -108,6 +108,7 @@ BEGIN
     BUTTON      ID_BUTTON_ImportVolute
     BUTTON      ID_BUTTON_Dual_Volute
     BUTTON      ID_BUTTON_Bearing_Volute
+    BUTTON      ID_BOTTON_Bearing2
 END
 
 
@@ -286,6 +287,16 @@ BEGIN
     EDITTEXT        IDC_EDIT_Inlet,208,21,62,10,ES_AUTOHSCROLL
 END
 
+IDD_DIALOG3 DIALOGEX 0, 0, 309, 176
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,155,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,155,50,14
+    PUSHBUTTON      "Button1",IDC_BUTTON1,199,114,50,14
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -317,6 +328,14 @@ BEGIN
         RIGHTMARGIN, 302
         TOPMARGIN, 7
         BOTTOMMARGIN, 188
+    END
+
+    IDD_DIALOG3, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 169
     END
 END
 #endif    // APSTUDIO_INVOKED

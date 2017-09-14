@@ -46,6 +46,10 @@
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepLib_FuseEdges.hxx>
 #include <GeomAPI_PointsToBSpline.hxx>
+#include <GeomAPI_Interpolate.hxx>
+
+#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\DualVoluteDialog.h"
+
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
 class CImportExportDoc : public OCC_3dDoc
@@ -60,7 +64,7 @@ public:
     virtual void Popup (const Standard_Integer  x       ,
 		    			const Standard_Integer  y       ,
                         const Handle(V3d_View)& aView   ); 
-
+	 
 	
 	double getTrapezuimHeight(double,double,double,double);
 	 double getSurfaceArea(TopoDS_Wire);
@@ -81,7 +85,12 @@ public:
 	TopoDS_Wire createSplitterFromThreeEdges(double,double,double,double,TopoDS_Wire);
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Edge);
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
-	TopoDS_Wire getDualVoluteCrossSection(double height);
+
+	TopoDS_Wire getDualVoluteCrossSection(double width,double bearingFlankHeightGap, double bearingFlankHeight, 
+											double bearingSideAngle, double exhaustSideAngle, double expectedArea,
+											double tipRadius,double dividerWallHeight, double exhaustFlankHeight, 
+											double dividerAngle, double exhaustThickness, double bearingThickness);
+
 	TopoDS_Wire createExitPipeWithDivider(double);
 	double getMaximumHeight(TopoDS_Wire);
 	double getMaximumDist2Edges(TopoDS_Edge,TopoDS_Edge);
@@ -95,6 +104,12 @@ public:
 	void displayPoint(gp_Pnt);
 	void displayPoint( Quantity_NameOfColor,gp_Pnt);
 
+	void createTrasitionVoluteCrossSection(TopoDS_Wire& w1,TopoDS_Wire& w2,TopoDS_Edge& p2q2e1,gp_Pnt& leftTopPoint,gp_Pnt& rightTopPoint,gp_Vec& leftBottomVec,gp_Vec& dividerLineVec,
+		double width,double bearingFlankHeightGap, double bearingFlankHeight, double bearingSideAngle, double exhaustSideAngle, double wholeVoluteArea,
+		 double tipRadius,double dividerWallHeight, double exhaustFlankHeight, double dividerAngle, double exhaustThickness, double bearingThickness);
+
+	void createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire,TopoDS_Wire,TopoDS_Wire ,TopoDS_Edge,gp_Vec,gp_Vec,double,double,double,double,double);
+	void createExitPipeEndigPart(TopoDS_Shape& s1,TopoDS_Shape&s2,TopoDS_Wire,TopoDS_Wire,gp_Pnt,gp_Vec,gp_Vec,double,double,double,double,double);
 // Implementation
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -134,6 +149,7 @@ protected:
 	afx_msg void OnImportVolute();
 	afx_msg void OnDualVolute();
 	afx_msg void OnBearingVolute();
+	afx_msg void OnBearingVoluteDialog();
 	
 	
 	//}}AFX_MSG
@@ -144,8 +160,24 @@ protected:
 	CColoredShapes* m_pcoloredshapeList;
 	BRepPrimAPI_MakeBox* boxPointer; //= new BRepPrimAPI_MakeBox();
 	CVoluteDialog* voluteDlg;
+	CDualVoluteDialog* dualVoluteDlg; 
 	
 	
+	union types
+	{
+		struct {
+		TopoDS_Wire leftVoluteWire;
+		TopoDS_Wire rightVoluteWire;
+		TopoDS_Edge p2q2Edge;
+		gp_Pnt leftTopPiontOfDividerWall;
+		gp_Pnt rightTopPointOfDividerWall;
+		gp_Vec leftBottomVector;
+		gp_Vec rightBottomVec;
+
+		};
+
+
+	};
 	
 
 };

@@ -323,6 +323,8 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\..\src\VoluteDialog.cpp" />
+    <ClCompile Include="DualVoluteDialog.cpp" />
+    <ClCompile Include="OCCVoluteTwoLobe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\res\ImportExport.rc">
@@ -343,6 +345,8 @@
     <ClInclude Include="..\..\..\res\resource.h" />
     <ClInclude Include="..\..\..\src\StdAfx.h" />
     <ClInclude Include="..\..\..\src\VoluteDialog.h" />
+    <ClInclude Include="DualVoluteDialog.h" />
+    <ClInclude Include="OCCVoluteTwoLobe.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>

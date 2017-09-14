@@ -6,6 +6,7 @@
 #define IDD_DIALOG1                     183
 #define IDD_DIALOG2                     184
 #define IDD_DIALOG_Volute               184
+#define IDD_DIALOG3                     185
 #define IDOK                            1510
 #define IDCANCEL                        1511
 #define IDC_EDIT_Radius                 1512
@@ -41,8 +42,8 @@
 #define ID_BUTTON_Thickness2            32824
 #define ID_BUTTON_ImportVolute          32825
 #define ID_BUTTON_Dual_Volute           32826
-#define ID_BUTTON32830                  32830
 #define ID_BUTTON_Bearing_Volute        32830
+#define ID_BOTTON_Bearing2              32831
 #define ID_FILE_EXPORT_STL              32896
 #define ID_FILE_EXPORT_VRML             32897
 
@@ -51,8 +52,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        185
-#define _APS_NEXT_COMMAND_VALUE         32831
+#define _APS_NEXT_RESOURCE_VALUE        186
+#define _APS_NEXT_COMMAND_VALUE         32832
 #define _APS_NEXT_CONTROL_VALUE         1518
 #define _APS_NEXT_SYMED_VALUE           170
 #endif
