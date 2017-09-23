@@ -572,10 +572,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 }
 
-
-
-
-
 	TopoDS_Edge CImportExportDoc::convertTrimmToBezier(Handle_Geom_Curve curve,gp_Vec leftVec,gp_Vec rightVec,double scaler)
 	{
 		
@@ -657,89 +653,6 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Edge e2=BRepBuilderAPI_MakeEdge(Arc2BezierCurve);
 		TopoDS_Edge mergedEdge=MergeEdges(e1,e2);
 
-
-
-		//TColgp_Array1OfPnt poleArray(1)
-
-/*
-		double lastParaOfArc1=Arc1BezierCurve->LastParameter();
-		double lastParaOfArc2=Arc2BezierCurve->LastParameter();
-		double Arc1paraRatio=lastParaOfArc1/5;
-		double Arc2paraRatio=lastParaOfArc2/5;
-
-		gp_Pnt arc1PointArray[5];
-		gp_Pnt arc2PointArray[5];
-
-		Handle_TColgp_HArray1OfPnt poleArray=new TColgp_HArray1OfPnt(1,11);
-
-		//TColgp_Array1OfPnt bsplinePoles(1,21);
-		//bsplinePoles(1)=Arc1BezierCurve->StartPoint();
-		poleArray->SetValue(1,Arc1BezierCurve->StartPoint());
-		for(int i=0;i<5;i++){
-			Arc1BezierCurve->D0(Arc1paraRatio*(i+1),arc1PointArray[i]);
-			//bsplinePoles(i+2)=arc1PointArray[i];
-			poleArray->SetValue(i+2,arc1PointArray[i]);
-		}
-
-		for(int i=0;i<5;i++){
-			Arc2BezierCurve->D0(Arc2paraRatio*(i+1),arc2PointArray[i]);
-			//bsplinePoles(i+12)=arc2PointArray[i];
-			poleArray->SetValue(i+7,arc2PointArray[i]);
-		}
-
-
-		//GeomAPI_PointsToBSpline bspline(bsplinePoles); 
-		GeomAPI_Interpolate bsplineInterpolate(poleArray,Standard_False,1.0e-6);
-		bsplineInterpolate.Perform();
-		*/
-
-		/*Handle_TColgp_HArray1OfPnt poleArray=new TColgp_HArray1OfPnt(1,11);
-		gp_Pnt arc1PointArray[10];
-		double paraGap=ArcBSplineCurve->LastParameter()-ArcBSplineCurve->FirstParameter();
-
-		double Arc1paraRatio=paraGap/10;
-
-		poleArray->SetValue(1,ArcBSplineCurve->StartPoint());
-		displayPoint(Quantity_NOC_GREEN,ArcBSplineCurve->StartPoint());
-		for(int i=0;i<9;i++){
-			Arc1BezierCurve->D0((ArcBSplineCurve->FirstParameter())+Arc1paraRatio*(i+1),arc1PointArray[i]);
-			displayPoint(Quantity_NOC_RED,arc1PointArray[i]);
-				poleArray->SetValue(i+2,arc1PointArray[i]);
-		}
-
-		poleArray->SetValue(11,ArcBSplineCurve->EndPoint());
-		displayPoint(Quantity_NOC_GREEN,ArcBSplineCurve->EndPoint());
-		
-
-		GeomAPI_Interpolate bsplineInterpolate(poleArray,Standard_False,1.0e-6);
-		bsplineInterpolate.Load(leftVec,-rightVec);
-		bsplineInterpolate.Perform();*/
-
-
-		//TopoDS_Edge bsplineEdge = BRepBuilderAPI_MakeEdge(bsplineInterpolate.Curve());
-		//BRepTools::Write(bsplineEdge,"D:/Breps/DualVolute/bspline.brep");
-		
-
-		Standard_Real  U1;
-		Standard_Real U2;
-
-		TopoDS_Edge curveEdge1=BRepBuilderAPI_MakeEdge(curve);
-
-		Handle_Geom_Curve curve1=BRep_Tool::Curve(curveEdge1,U1,U2);
-
-		//displayPoint(Quantity_NOC_ORANGE,middleSegmentStartPoint);
-		//displayPoint(Quantity_NOC_ORANGE,middleSegmentEndPoint);
-		
-		//m_pcoloredshapeList->Add(Quantity_NOC_IVORY,mergedEdge);
-
-		//CString str;
-		//CString str1;
-		//str.Format(_T("nbpoints %d \n"),middleSegmentBezierCurve->NbPoles());
-		//str1.Format(_T("last para %g"),U2);
-
-	
-		m_pcoloredshapeList->Display(myAISContext);
-		Fit();
 		return mergedEdge;
 
 	}

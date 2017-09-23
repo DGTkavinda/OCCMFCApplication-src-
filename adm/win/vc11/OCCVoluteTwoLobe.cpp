@@ -72,6 +72,9 @@
 #include "BRepFeat_MakeCylindricalHole.hxx"
 #include "windef.h"
 #include "OCCVoluteTwoLobe.h"
+#include "AIS_Shape.hxx"
+#include "GeomConvert_CompCurveToBSplineCurve.hxx"
+
 
 #define PI 3.14159265
 
@@ -187,12 +190,12 @@
 		trBuilder.Add(transitionCom,VoluteShape);
 
 
-		/*BRepTools::Write(VoluteShape,"D:/Breps/DualVolute/Volute.brep");
+		BRepTools::Write(VoluteShape,"D:/Breps/DualVolute/Volute.brep");
 		BRepTools::Write(leftTransitionPartShape,"D:/Breps/DualVolute/leftTransitionPartShape.brep");
 		BRepTools::Write(rightTransitionPartShape,"D:/Breps/DualVolute/rightTransitionPartShape.brep");
 		BRepTools::Write(leftExitPipeEnding,"D:/Breps/DualVolute/leftExitPipeEnding.brep");
 		BRepTools::Write(rightExitPipeEnding,"D:/Breps/DualVolute/rightExitPipeEnding.brep");
-		BRepTools::Write(transitionCom,"D:/Breps/DualVolute/completeShape.brep");*/
+		BRepTools::Write(transitionCom,"D:/Breps/DualVolute/completeShape.brep");
 
 	}
 
@@ -1051,86 +1054,106 @@ TopoDS_Wire OCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bear
 	TopoDS_Edge OCCVoluteTwoLobe::convertTrimmToBezier(Handle_Geom_Curve curve,gp_Vec leftVec,gp_Vec rightVec,double scaler)
 	{
 		GeomConvert convert;
-		Handle_Geom_BSplineCurve ArcBSplineCurve=convert.CurveToBSplineCurve(curve);
-		GeomConvert_BSplineCurveToBezierCurve bsplineToBezierCurve(ArcBSplineCurve);
-		Handle_Geom_BezierCurve Arc1BezierCurve=bsplineToBezierCurve.Arc(1);
-		Handle_Geom_BezierCurve Arc2BezierCurve=bsplineToBezierCurve.Arc(2);
+	Handle_Geom_BSplineCurve ArcBSplineCurve=convert.CurveToBSplineCurve(curve);
+	GeomConvert_BSplineCurveToBezierCurve bsplineToBezierCurve(ArcBSplineCurve);
+	Handle_Geom_BezierCurve Arc1BezierCurve=bsplineToBezierCurve.Arc(1);
+	Handle_Geom_BezierCurve Arc2BezierCurve=bsplineToBezierCurve.Arc(2);
 
-		leftVec.Normalize();
-		rightVec.Normalize();
+	gp_Pnt startPointOfBSplineCurve=ArcBSplineCurve->StartPoint();
+	gp_Pnt endPointOfBSplineCurve = ArcBSplineCurve->EndPoint();
 
-		leftVec.Multiply(scaler/10);
-		rightVec.Multiply(scaler/10);
-		
-		TopoDS_Edge curveEdge=BRepBuilderAPI_MakeEdge( ArcBSplineCurve);
-		TopoDS_Edge e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
-		double nbPoles=Arc1BezierCurve->NbPoles();
-
-		gp_Pnt pointArray1[4];
-		TopoDS_Vertex vertArray[4];
-		for(int i=0;i<Arc1BezierCurve->NbPoles();i++){
-
-			pointArray1[i]=Arc1BezierCurve->Pole(i+1);
-			vertArray[i]=BRepBuilderAPI_MakeVertex(pointArray1[i]);
-			
-		}	
-		gp_Pnt startPoint=pointArray1[0];
-		gp_Pnt leftMiddlePoint=pointArray1[1];
-		gp_Pnt leftTanPoint=pointArray1[0].Translated(leftVec);
-		
-		Arc1BezierCurve->InsertPoleAfter(1,leftTanPoint);
-		e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
-
-		gp_Pnt pointArray2[4];
-		for(int i=0;i<Arc2BezierCurve->NbPoles();i++){
-
-			pointArray2[i]=Arc2BezierCurve->Pole(i+1);
-			vertArray[i]=BRepBuilderAPI_MakeVertex(pointArray2[i]);
-			
-		}	
-		gp_Pnt middlePoint= pointArray2[0];
-		gp_Pnt endPoint =pointArray2[2];
-		gp_Pnt rightMiddlePoint=pointArray2[1];
-
-		gp_Pnt rightTanPoint=pointArray2[2].Translated(rightVec);
-		
-		Arc2BezierCurve->InsertPoleBefore(3,rightTanPoint);
-		TopoDS_Edge e2=BRepBuilderAPI_MakeEdge(Arc2BezierCurve);
-		TopoDS_Wire curveWire=BRepBuilderAPI_MakeWire(e1,e2);
-
-		double lastParaOfArc1=Arc1BezierCurve->LastParameter();
-		double lastParaOfArc2=Arc2BezierCurve->LastParameter();
-		double Arc1paraRatio=lastParaOfArc1/10;
-		double Arc2paraRatio=lastParaOfArc2/10;
-
-		gp_Pnt arc1PointArray[10];
-		gp_Pnt arc2PointArray[10];
-
-		Handle_TColgp_HArray1OfPnt poleArray=new TColgp_HArray1OfPnt(1,21);
-
-		//TColgp_Array1OfPnt bsplinePoles(1,21);
-		//bsplinePoles(1)=Arc1BezierCurve->StartPoint();
-		poleArray->SetValue(1,Arc1BezierCurve->StartPoint());
-		for(int i=0;i<10;i++){
-			Arc1BezierCurve->D0(Arc1paraRatio*(i+1),arc1PointArray[i]);
-			//bsplinePoles(i+2)=arc1PointArray[i];
-			poleArray->SetValue(i+2,arc1PointArray[i]);
-		}
-
-		for(int i=0;i<10;i++){
-			Arc2BezierCurve->D0(Arc2paraRatio*(i+1),arc2PointArray[i]);
-			//bsplinePoles(i+12)=arc2PointArray[i];
-			poleArray->SetValue(i+12,arc2PointArray[i]);
-		}
+	double lengthOfCurve =startPointOfBSplineCurve.Distance(endPointOfBSplineCurve);
 
 
-		//GeomAPI_PointsToBSpline bspline(bsplinePoles); 
-		GeomAPI_Interpolate bsplineInterpolate(poleArray,Standard_False,1.0e-6);
-		bsplineInterpolate.Perform();
-		TopoDS_Edge bsplineEdge = BRepBuilderAPI_MakeEdge(bsplineInterpolate.Curve());
-		
-		return bsplineEdge;
+	leftVec.Normalize();
+	rightVec.Normalize();
+
+	leftVec.Multiply(scaler/10);
+	rightVec.Multiply(scaler/10);
+
+	TopoDS_Edge curveEdge=BRepBuilderAPI_MakeEdge( ArcBSplineCurve);
+	TopoDS_Edge e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
+
+
+	gp_Pnt pointArray1[4];
+	TopoDS_Vertex vertArray[4];
+	for(int i=0;i<Arc1BezierCurve->NbPoles();i++){
+
+		pointArray1[i]=Arc1BezierCurve->Pole(i+1);
+		vertArray[i]=BRepBuilderAPI_MakeVertex(pointArray1[i]);
+
+	}	
+	gp_Pnt startPoint=pointArray1[0];
+	gp_Pnt leftMiddlePoint=pointArray1[1];
+	gp_Pnt leftTanPoint=pointArray1[0].Translated(leftVec);
+
+	Arc1BezierCurve->InsertPoleAfter(1,leftTanPoint);
+	e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
+
+	gp_Pnt pointArray2[4];
+	for(int i=0;i<Arc2BezierCurve->NbPoles();i++){
+
+		pointArray2[i]=Arc2BezierCurve->Pole(i+1);
+		vertArray[i]=BRepBuilderAPI_MakeVertex(pointArray2[i]);
+
+	}	
+	gp_Pnt middlePoint= pointArray2[0];
+	gp_Pnt endPoint =pointArray2[2];
+	gp_Pnt rightMiddlePoint=pointArray2[1];
+
+	gp_Pnt rightTanPoint=pointArray2[2].Translated(rightVec);
+
+	Arc2BezierCurve->InsertPoleBefore(3,rightTanPoint);
+	TopoDS_Edge e2=BRepBuilderAPI_MakeEdge(Arc2BezierCurve);
+	TopoDS_Wire curveWire=BRepBuilderAPI_MakeWire(e1,e2);  
+
+	TopoDS_Edge mergedEdge;
+	mergedEdge=MergeEdges(e1,e2);
+
+	return mergedEdge;
 	}
+
+
+
+		TopoDS_Edge OCCVoluteTwoLobe::MergeEdges(TopoDS_Edge edge1,TopoDS_Edge edge2)
+{
+       Handle_Geom_Curve pGeoCurve;
+       BRep_Builder BrepBuilder;
+       TopoDS_Compound topoNewCurves;
+       Handle_AIS_Shape pNewAISCurves;
+       double first, last;
+       double tolerance=0.001;
+      
+              BrepBuilder.MakeCompound(topoNewCurves);
+            bool suceed = true;
+              bool firstedge = true;
+              TopoDS_Edge edge =edge1;
+              pGeoCurve = BRep_Tool::Curve(edge, first, last);
+              Handle(Geom_TrimmedCurve) curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+              GeomConvert_CompCurveToBSplineCurve final_spline(curve);
+            
+                                  edge = edge2;
+                                  pGeoCurve = BRep_Tool::Curve(edge, first, last);
+                                  curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+								  if (!final_spline.Add(curve, tolerance, Standard_False))
+                                  {
+                                         suceed = false;
+                                                                    
+              }
+
+				TopoDS_Edge merged;
+              if (suceed)
+              {
+                     BRepBuilderAPI_MakeEdge theEdgeBuilder_final(final_spline.BSplineCurve());
+                     BrepBuilder.Add(topoNewCurves, theEdgeBuilder_final.Edge());
+					 merged=theEdgeBuilder_final;
+              }
+       
+			  return merged;
+
+}
+
+
 
 	void OCCVoluteTwoLobe::createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire crossSection27,TopoDS_Wire leftVoluteWire, TopoDS_Wire rightVoluteWire ,TopoDS_Edge p2q2Edge,gp_Vec leftBottomVector ,gp_Vec divideLineVec , double exitPipeRadius,double exitDividerAngle,double maxWidthOfDividerWall,double transitionPartLength, double voluteRadius ){
 	

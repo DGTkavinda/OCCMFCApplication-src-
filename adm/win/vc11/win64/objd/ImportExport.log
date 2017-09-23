@@ -1,19 +1,20 @@
-﻿  ZXDialog.cpp
+﻿  DualVoluteDialog.cpp
 D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(11): warning C4005: 'IDOK' : macro redefinition
           C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10477) : see previous definition of 'IDOK'
 D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\res/resource.h(12): warning C4005: 'IDCANCEL' : macro redefinition
           C:\Program Files (x86)\Windows Kits\8.0\Include\um\winuser.h(10478) : see previous definition of 'IDCANCEL'
-ZXDialog.cpp(82): warning C4101: 'areaRatio' : unreferenced local variable
-ZXDialog.cpp(124): warning C4100: 'toungAreaPercentage' : unreferenced formal parameter
-ZXDialog.cpp(124): warning C4100: 'exitPipeRadius' : unreferenced formal parameter
-ZXDialog.cpp(123): warning C4100: 'exitDividerWallWidth' : unreferenced formal parameter
-ZXDialog.cpp(123): warning C4100: 'voluteRadius' : unreferenced formal parameter
-ZXDialog.cpp(123): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
-ZXDialog.cpp(123): warning C4100: 'exitPipeLength' : unreferenced formal parameter
-ZXDialog.cpp(123): warning C4100: 'transitionPartLength' : unreferenced formal parameter
-ZXDialog.cpp(121): warning C4100: 'wholeVoluteArea' : unreferenced formal parameter
-ZXDialog.cpp(142): warning C4100: 'dividerWallHeight' : unreferenced formal parameter
-ZXDialog.cpp(142): warning C4100: 'expectedArea' : unreferenced formal parameter
-ZXDialog.cpp(400): warning C4101: 'gprop' : unreferenced local variable
+DualVoluteDialog.cpp(117): warning C4101: 'wholeVoluteTrapziumHeight' : unreferenced local variable
+DualVoluteDialog.cpp(118): warning C4101: 'trapeziumWidth' : unreferenced local variable
+DualVoluteDialog.cpp(119): warning C4101: 'trapeziumAngle' : unreferenced local variable
+DualVoluteDialog.cpp(285): warning C4100: 'dividerWallHeight' : unreferenced formal parameter
+DualVoluteDialog.cpp(284): warning C4100: 'bearingFlankHeight' : unreferenced formal parameter
+DualVoluteDialog.cpp(541): warning C4100: 'exhaustFlankHeight' : unreferenced formal parameter
+DualVoluteDialog.cpp(541): warning C4100: 'dividerWallHeight' : unreferenced formal parameter
+DualVoluteDialog.cpp(540): warning C4100: 'bearingFlankHeight' : unreferenced formal parameter
+DualVoluteDialog.cpp(878): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
+DualVoluteDialog.cpp(903): warning C4101: 'convert' : unreferenced local variable
+DualVoluteDialog.cpp(1020): warning C4100: 'exitDividerAngle' : unreferenced formal parameter
+DualVoluteDialog.cpp(1045): warning C4101: 'convert' : unreferenced local variable
+DualVoluteDialog.cpp(1138): warning C4101: 'convert' : unreferenced local variable
      Creating library ../../../../win64\vc11\bin\ImportExport.lib and object ../../../../win64\vc11\bin\ImportExport.exp
   ImportExport.vcxproj -> D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\../../../../win64\vc11\bin\ImportExport.exe

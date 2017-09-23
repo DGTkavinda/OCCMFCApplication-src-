@@ -100,7 +100,7 @@ public:
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 	TopoDS_Edge convertTrimmToBezier(Handle_Geom_Curve,gp_Vec,gp_Vec,double);
 	double getDividerWallMaximumWidth(TopoDS_Wire);
-	void MergeEdges(TopoDS_Edge edge1, TopoDS_Edge edge2);
+	TopoDS_Edge MergeEdges(TopoDS_Edge edge1, TopoDS_Edge edge2);
 
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButton1();
