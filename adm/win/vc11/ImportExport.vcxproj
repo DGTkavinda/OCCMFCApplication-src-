@@ -325,6 +325,7 @@
     <ClCompile Include="..\..\..\src\VoluteDialog.cpp" />
     <ClCompile Include="DualVoluteDialog.cpp" />
     <ClCompile Include="OCCVoluteTwoLobe.cpp" />
+    <ClCompile Include="ZXDialog.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\res\ImportExport.rc">
@@ -348,6 +349,7 @@
     <ClInclude Include="DualVoluteDialog.h" />
     <ClInclude Include="OCCVoluteTwoLobe.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ZXDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\res\Toolbar.bmp" />

@@ -182,7 +182,7 @@ void CVoluteDialog::OnBnClicked1()
 		gp_Trsf transfer;
 		BRepOffsetAPI_ThruSections sections;
 
-		gp_Ax1 axis(gp_Pnt(0,-inletRaduis,0),gp_Dir(1,0,0));
+		gp_Ax1 axis(gp_Pnt(0,-inletRaduis,0),gp_Dir(0,0,1));
 		//initial wire rotation
 
 		double ang=1;
@@ -267,6 +267,7 @@ void CVoluteDialog::OnBnClicked1()
 		TopoDS_Shape voluteAndExit=completeShape;
 
 		BRepTools::Write(voluteAndExit,"D:/Breps/whoaleShapewithExit.brep");	
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,voluteAndExit);
 
 		Handle(AIS_InteractiveObject) obj1 = (new AIS_Shape(voluteAndExit));
 

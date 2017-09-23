@@ -1,12 +1,45 @@
-
 #include "stdafx.h"
 
+#include "Geom_BezierCurve.hxx"
+#include "GProp_GProps.hxx"
+#include <BRepGProp.hxx>
+#include <BRepOffsetAPI_ThruSections.hxx>
+#include "gp_Trsf.hxx"
+#include "GeomAbs_JoinType.hxx"
+#include "BRepOffsetAPI_MakeOffsetShape.hxx"
+#include "BRepOffset_Mode.hxx"
+#include "BRepBuilderAPI_MakeVertex.hxx"
+#include <fstream>  
+#include <iostream>  
+#include <string>  
+#include <Geom_BSplineCurve.hxx>
+#include <BRepFill_Filling.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
+#include <BRepAdaptor_Surface.hxx>
+#include <BRepExtrema_DistanceSS.hxx>
+#include <BRepExtrema_DistShapeShape.hxx>
+#include <GeomAPI_ProjectPointOnCurve.hxx>
+#include <GeomLib_Tool.hxx>
+#include "GC_MakeArcOfEllipse.hxx"
+#include <BRepFilletAPI_MakeFillet2d.hxx>
+#include <ChFi2d_FilletAPI.hxx>
+#include <BRepAdaptor_Curve.hxx>
+#include <GeomConvert.hxx>
+#include <ChFi2d_AnaFilletAlgo.hxx>
+#include <ChFi2d_FilletAlgo.hxx>
+#include <BRepExtrema_ExtCC.hxx>
+#include <BRepExtrema_ExtPC.hxx>
+#include <GeomConvert_BSplineCurveToBezierCurve.hxx>
+#include <BRepAlgoAPI_Fuse.hxx>
+#include <BRepLib_FuseEdges.hxx>
+#include <GeomAPI_PointsToBSpline.hxx>
+#include <GeomAPI_Interpolate.hxx>
+#include <BRepTools.hxx>
+#include <TopExp_Explorer.hxx>
 
-
-#include <ImportExport/ImportExport.h>
 
 #include <AISDialogs.h>
-#include "res/resource.h"
+
 
 #include <Standard_Address.hxx>
 #include <Standard_Stream.hxx>
@@ -45,7 +78,11 @@
 
 
 
-	void COCCVoluteTwoLobe::OnBearingVolute(){
+	
+	void OCCVoluteTwoLobe::OnBearingVolute(double width,double exhaustFlankHeight,double bearingFlankHeight,double bearingSideAngle,double exhaustSideAngle,double wholeVoluteArea,
+		double tipRadius,double dividerWallHeight,double dividerAngle,double exhaustThickness,
+		double bearingThickness,double transitionPartLength,double exitPipeLength,double exitDividerAngle,double voluteRadius,double exitDividerWallWidth,double exitPipeRadius,
+		double toungAreaPercentage){
 
 	/*         q2                     p1
 				 \         |         /
@@ -61,55 +98,15 @@
 
 				*/
 
-		double width;
-		double exhaustFlankHeight;
-		double bearingFlankHeight;
-		double bearingSideAngle;
-		double exhaustSideAngle;
-		double wholeVoluteArea;
-		double wholeVoluteTrapziumHeight;
-		double trapeziumWidth;
-		double trapeziumAngle;
-		double tipRadius;
-		double dividerWallHeight;
+	
 		
-		double dividerAngle;
-		double exhaustThickness;
-		double bearingThickness;
-		double transitionPartLength;
-		double exitPipeLength;
-		double exitDividerAngle;
-		double voluteRadius;
-		double exitDividerWallWidth;
-		double exitPipeRadius;
-		double toungAreaPercentage;
-		double bearingFlankHeightGap;
-
-		width=10*2;
-		bearingFlankHeight=13.526;
-		exhaustFlankHeight=10;
-		bearingFlankHeightGap=abs(bearingFlankHeight-exhaustFlankHeight);
-		bearingSideAngle=41;
-		exhaustSideAngle=30;
-		wholeVoluteArea=2000;
-		
-		tipRadius=0.5;
-		dividerWallHeight=15;
-		
-		dividerAngle=10;
-		exhaustThickness=15;
-		bearingThickness=15;
-		toungAreaPercentage=0.01;
-
-		transitionPartLength=-150;
-		exitPipeLength=-200;
-		exitDividerAngle=90;
-		exitDividerWallWidth=15;
-		exitPipeRadius=width*3;
-		voluteRadius=width*5;
 		
 
 		// volute
+
+		double bearingFlankHeightGap;
+		bearingFlankHeightGap=abs(bearingFlankHeight-exhaustFlankHeight);
+		bearingFlankHeightGap=abs(bearingFlankHeight-exhaustFlankHeight);
 		BRepOffsetAPI_ThruSections sections;
 		gp_Trsf transfer;
 		gp_Ax1 rotationAxis(gp_Pnt(0,-voluteRadius,0),gp_Dir(1,0,0));
@@ -190,18 +187,16 @@
 		trBuilder.Add(transitionCom,VoluteShape);
 
 
-		BRepTools::Write(VoluteShape,"D:/Breps/DualVolute/Volute.brep");
+		/*BRepTools::Write(VoluteShape,"D:/Breps/DualVolute/Volute.brep");
 		BRepTools::Write(leftTransitionPartShape,"D:/Breps/DualVolute/leftTransitionPartShape.brep");
 		BRepTools::Write(rightTransitionPartShape,"D:/Breps/DualVolute/rightTransitionPartShape.brep");
 		BRepTools::Write(leftExitPipeEnding,"D:/Breps/DualVolute/leftExitPipeEnding.brep");
 		BRepTools::Write(rightExitPipeEnding,"D:/Breps/DualVolute/rightExitPipeEnding.brep");
-		BRepTools::Write(transitionCom,"D:/Breps/DualVolute/completeShape.brep");
-		
-
+		BRepTools::Write(transitionCom,"D:/Breps/DualVolute/completeShape.brep");*/
 
 	}
 
-double COCCVoluteTwoLobe::getTrapezuimHeight(double area,double width, double ang1Tan, double ang2Tan){
+double OCCVoluteTwoLobe::getTrapezuimHeight(double area,double width, double ang1Tan, double ang2Tan){
 
 
 
@@ -219,7 +214,7 @@ double COCCVoluteTwoLobe::getTrapezuimHeight(double area,double width, double an
 	}
 
 
-TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bearingFlankHeightGap, double bearingFlankHeight, double bearingSideAngle, double exhaustSideAngle, 
+TopoDS_Wire OCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bearingFlankHeightGap, double bearingFlankHeight, double bearingSideAngle, double exhaustSideAngle, 
 														 double expectedArea,double tipRadius,double dividerWallHeight, double exhaustFlankHeight, double dividerAngle,
 														 double exhaustThickness,double bearingThickness)
 	{
@@ -475,7 +470,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 	}
 
 
-	void COCCVoluteTwoLobe::createTrasitionVoluteCrossSection(TopoDS_Wire& w1,TopoDS_Wire& w2,TopoDS_Edge& p2q2e1,gp_Pnt& leftTopPoint,gp_Pnt& rightTopPoint,
+	void OCCVoluteTwoLobe::createTrasitionVoluteCrossSection(TopoDS_Wire& w1,TopoDS_Wire& w2,TopoDS_Edge& p2q2e1,gp_Pnt& leftTopPoint,gp_Pnt& rightTopPoint,
 		gp_Vec& leftBottomVec,gp_Vec& dividerLineVec,double width,double bearingFlankHeightGap, double bearingFlankHeight, double bearingSideAngle,
 		double exhaustSideAngle, double wholeVoluteArea, double tipRadius,double dividerWallHeight, double exhaustFlankHeight, double dividerAngle, 
 		double exhaustThickness, double bearingThickness)
@@ -730,7 +725,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 
 	}
 
-	gp_Pnt COCCVoluteTwoLobe::getMinimumDistancePoint(TopoDS_Edge edge,TopoDS_Vertex vertex)
+	gp_Pnt OCCVoluteTwoLobe::getMinimumDistancePoint(TopoDS_Edge edge,TopoDS_Vertex vertex)
 	{
 
 		BRepExtrema_DistShapeShape minimumDist(edge,vertex,Extrema_ExtFlag_MINMAX,Extrema_ExtAlgo_Grad);
@@ -739,7 +734,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 		return divideIntersectionPointOnCurve;
 	}
 
-	gp_Pnt COCCVoluteTwoLobe::getMinimumDistancePoint(TopoDS_Edge edge1,TopoDS_Edge edge2)
+	gp_Pnt OCCVoluteTwoLobe::getMinimumDistancePoint(TopoDS_Edge edge1,TopoDS_Edge edge2)
 	{
 
 		TopoDS_Wire wire1=BRepBuilderAPI_MakeWire(edge1);
@@ -752,7 +747,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 		return divideIntersectionPointOnCurve;
 	}
 
-	double  COCCVoluteTwoLobe::getMaximumHeight(TopoDS_Wire section){
+	double  OCCVoluteTwoLobe::getMaximumHeight(TopoDS_Wire section){
 
 		TopoDS_Edge edges[10];
 		TopExp_Explorer edgeExplorer(section,TopAbs_EDGE);
@@ -798,19 +793,13 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 
 		
 
-		/*m_pcoloredshapeList->Add(Quantity_NOC_GREEN,section);
-		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,maxVertex);
-		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,vertexArray[0]);
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,edges[8]);
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,edges[0]);
-		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,vertexArrayOfEdge0[0]);
-		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,vertexArrayOfEdge8[0]);*/
+		
 		
 
 		return distanceValue;
 	} 
 
-		void COCCVoluteTwoLobe::getExitPipeTransitionCrossSection(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt centrePointOfCircle,double exitDividerAngle,gp_Vec leftBottomVector,  
+		void OCCVoluteTwoLobe::getExitPipeTransitionCrossSection(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt centrePointOfCircle,double exitDividerAngle,gp_Vec leftBottomVector,  
 																								double exitDividerWallWidth,double exitPipeRadius,gp_Vec divideLineVec)
 		{
 
@@ -928,7 +917,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 	}
 
 
-	double COCCVoluteTwoLobe::getDividerWallMaximumWidth(TopoDS_Wire section)
+	double OCCVoluteTwoLobe::getDividerWallMaximumWidth(TopoDS_Wire section)
 	{
 
 		TopoDS_Edge edges[10];
@@ -945,7 +934,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 		return 0;
 	}
 
-		void COCCVoluteTwoLobe::getExitPipeEnding(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt centrePointOfCircle,double exitDividerAngle,gp_Vec leftBottomVector,
+		void OCCVoluteTwoLobe::getExitPipeEnding(TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt centrePointOfCircle,double exitDividerAngle,gp_Vec leftBottomVector,
 												  double exitDividerWallWidth,double exitPipeRadius,gp_Vec divideLineVec)
 	{
 
@@ -1059,7 +1048,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 	}
 
 	
-	TopoDS_Edge COCCVoluteTwoLobe::convertTrimmToBezier(Handle_Geom_Curve curve,gp_Vec leftVec,gp_Vec rightVec,double scaler)
+	TopoDS_Edge OCCVoluteTwoLobe::convertTrimmToBezier(Handle_Geom_Curve curve,gp_Vec leftVec,gp_Vec rightVec,double scaler)
 	{
 		GeomConvert convert;
 		Handle_Geom_BSplineCurve ArcBSplineCurve=convert.CurveToBSplineCurve(curve);
@@ -1143,7 +1132,7 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 		return bsplineEdge;
 	}
 
-	void COCCVoluteTwoLobe::createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire crossSection27,TopoDS_Wire leftVoluteWire, TopoDS_Wire rightVoluteWire ,TopoDS_Edge p2q2Edge,gp_Vec leftBottomVector ,gp_Vec divideLineVec , double exitPipeRadius,double exitDividerAngle,double maxWidthOfDividerWall,double transitionPartLength, double voluteRadius ){
+	void OCCVoluteTwoLobe::createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire crossSection27,TopoDS_Wire leftVoluteWire, TopoDS_Wire rightVoluteWire ,TopoDS_Edge p2q2Edge,gp_Vec leftBottomVector ,gp_Vec divideLineVec , double exitPipeRadius,double exitDividerAngle,double maxWidthOfDividerWall,double transitionPartLength, double voluteRadius ){
 	
 		Standard_Real U1;
 		Standard_Real U2;
@@ -1199,12 +1188,12 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 	
 	}
 
-	void COCCVoluteTwoLobe::createExitPipeEndigPart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire leftTransition,TopoDS_Wire rightTransition,gp_Pnt centrePointOfCircle,gp_Vec leftBottomVector,gp_Vec divideLineVec ,double exitDividerWallWidth,double exitPipeRadius,double exitDividerAngle,double transitionPartLength,double exitPipeLength)
+	void OCCVoluteTwoLobe::createExitPipeEndigPart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire leftTransition,TopoDS_Wire rightTransition,gp_Pnt centrePointOfCircle,gp_Vec leftBottomVector,gp_Vec divideLineVec ,double exitDividerWallWidth,double exitPipeRadius,double exitDividerAngle,double transitionPartLength,double exitPipeLength)
 	{
 	
 		gp_Vec exitPipeTranslateVec1(gp_Dir(0,0,1));
 		gp_Trsf translate;
-		exitPipeTranslateVec1.Multiply(transitionPartLength+exitPipeLength);
+		exitPipeTranslateVec1.Multiply((-transitionPartLength)+(-exitPipeLength));
 		translate.SetTranslation(exitPipeTranslateVec1);
 
 		TopoDS_Wire leftPartOfExitPipeEnding;
@@ -1233,5 +1222,62 @@ TopoDS_Wire COCCVoluteTwoLobe::getDualVoluteCrossSection(double width,double bea
 
 		s1=leftExitPipeEnding;
 		s2=rightExitPipeEnding;
-
+		                                                                                                                                                                                                                                                  
 	}
+
+
+	void OCCVoluteTwoLobe::makeTwoLobeVolute()
+{
+    
+		double width;
+		double exhaustFlankHeight;
+		double bearingFlankHeight;
+		double bearingSideAngle;
+		double exhaustSideAngle;
+		double wholeVoluteArea;	
+		double tipRadius;
+		double dividerWallHeight;
+		double dividerAngle;
+		double exhaustThickness;
+		double bearingThickness;
+		double toungAreaPercentage;
+
+		double exitPipeRadius;
+		double transitionPartLength;
+		double exitPipeLength;
+		double exitDividerAngle;
+		double voluteRadius;
+		double exitDividerWallWidth;
+		
+		
+		double areaRatio;
+
+		width=10*2;
+		bearingFlankHeight=13.526;
+		exhaustFlankHeight=10;
+		
+		bearingSideAngle=41;
+		exhaustSideAngle=30;
+		wholeVoluteArea=2000;
+		
+		tipRadius=0.5;
+		dividerWallHeight=15;
+		
+		dividerAngle=10;
+		exhaustThickness=15;
+		bearingThickness=15;
+		toungAreaPercentage=0.01;
+		transitionPartLength=-150;
+		exitPipeLength=200;
+		exitDividerAngle=90;
+		exitDividerWallWidth=15;
+		exitPipeRadius=width*3;
+		voluteRadius=width*5;
+
+		OnBearingVolute(width, exhaustFlankHeight, bearingFlankHeight, bearingSideAngle, exhaustSideAngle, wholeVoluteArea,
+		                tipRadius, dividerWallHeight, dividerAngle, exhaustThickness,bearingThickness, transitionPartLength, exitPipeLength,
+		                exitDividerAngle, voluteRadius, exitDividerWallWidth, exitPipeRadius,toungAreaPercentage);
+
+
+    return;
+}

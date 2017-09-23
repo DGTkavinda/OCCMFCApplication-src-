@@ -1,43 +1,11 @@
-#include "Geom_BezierCurve.hxx"
-#include <BRepGProp.hxx>
-#include "GProp_GProps.hxx"
-#include <BRepOffsetAPI_ThruSections.hxx>
-#include "gp_Trsf.hxx"
-#include "VoluteDialog.h"
-#include "GeomAbs_JoinType.hxx"
-#include "BRepOffsetAPI_MakeOffsetShape.hxx"
-#include "BRepOffset_Mode.hxx"
-#include "BRepBuilderAPI_MakeVertex.hxx"
-#include <fstream>  
-#include <iostream>  
-#include <string>  
-#include <Geom_BSplineCurve.hxx>
-#include <BRepFill_Filling.hxx>
-#include <BRepPrimAPI_MakeRevol.hxx>
-#include <BRepAdaptor_Surface.hxx>
-#include <BRepExtrema_DistanceSS.hxx>
-#include <BRepExtrema_DistShapeShape.hxx>
-#include <GeomAPI_ProjectPointOnCurve.hxx>
-#include <GeomLib_Tool.hxx>
-#include "GC_MakeArcOfEllipse.hxx"
-#include <BRepFilletAPI_MakeFillet2d.hxx>
-#include <ChFi2d_FilletAPI.hxx>
-#include <BRepAdaptor_Curve.hxx>
-#include <GeomConvert.hxx>
-#include <ChFi2d_AnaFilletAlgo.hxx>
-#include <ChFi2d_FilletAlgo.hxx>
-#include <BRepExtrema_ExtCC.hxx>
-#include <BRepExtrema_ExtPC.hxx>
-#include <GeomConvert_BSplineCurveToBezierCurve.hxx>
-#include <BRepAlgoAPI_Fuse.hxx>
-#include <BRepLib_FuseEdges.hxx>
-#include <GeomAPI_PointsToBSpline.hxx>
-#include <GeomAPI_Interpolate.hxx>
 
-class COCCVoluteTwoLobe
+class OCCVoluteTwoLobe
 {
 	//initiating program,create compund shape
-	void OnBearingVolute();
+	void OnBearingVolute(double width,double exhaustFlankHeight,double bearingFlankHeight,double bearingSideAngle,double exhaustSideAngle,double wholeVoluteArea,
+		double tipRadius,double dividerWallHeight,double dividerAngle,double exhaustThickness,
+		double bearingThickness,double transitionPartLength,double exitPipeLength,double exitDividerAngle,double voluteRadius,double exitDividerWallWidth,double exitPipeRadius,
+		double toungAreaPercentage);
 
 	//creates cross section for a given area
 	TopoDS_Wire getDualVoluteCrossSection(double width,double bearingFlankHeightGap, double bearingFlankHeight, double bearingSideAngle, double exhaustSideAngle,
@@ -77,4 +45,6 @@ class COCCVoluteTwoLobe
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 	TopoDS_Edge convertTrimmToBezier(Handle_Geom_Curve,gp_Vec,gp_Vec,double);
 	double getDividerWallMaximumWidth(TopoDS_Wire);
+	void makeTwoLobeVolute();
+
 };

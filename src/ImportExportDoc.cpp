@@ -42,6 +42,7 @@
 #include "BRepAlgoAPI_BuilderAlgo.hxx"
 #include "BRepFeat_MakeCylindricalHole.hxx"
 #include "windef.h"
+#include "GeomConvert_CompCurveToBSplineCurve.hxx"
 //#include "BOPAlgo_Algo.hxx"
 
 //#include <Standard_Transient.hxx>
@@ -97,6 +98,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		ON_COMMAND(ID_BUTTON_Dual_Volute,OnDualVolute)
 		ON_COMMAND(ID_BUTTON_Bearing_Volute,OnBearingVolute)
 		ON_COMMAND(ID_BOTTON_Bearing2,OnBearingVoluteDialog)
+		ON_COMMAND(ID_BOTTON_ZXPlain,OnZXPlain)
 
 		//ON_COMMAND(ID_BUTTONImportBREPNew,OnBREPFile)
 
@@ -286,25 +288,27 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 
 		gp_Pnt p0(0,-exhaustFlankHeight,0);
-		gp_Pnt q0(-width,-exhaustFlankHeight,0);
-		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(-1,0,0));
-		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(1,0,0));
+		gp_Pnt q0(0,-exhaustFlankHeight,-width);
+		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,-1));
+		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
 
 		gp_Pnt p1(0,0,0);
-		gp_Pnt p2(p2x,p2y,0);
+		gp_Pnt p2(0,p2y,p2x);
 
-		gp_Pnt q1(-width,bearingFlankHeightGap,0);
-		gp_Pnt q2(-(width+q2x),bearingFlankHeightGap+q2y,0);
-		gp_Pnt r1(-(exhaustThickness*sinA1),(exhaustThickness*cosA1),0);
+		gp_Pnt q1(0,bearingFlankHeightGap,-width);
+		gp_Pnt q2(0,bearingFlankHeightGap+q2y,-(width+q2x));
+		gp_Pnt r1(0,(exhaustThickness*cosA1),-(exhaustThickness*sinA1));
 
-		gp_Ax1 q1Axis(q1,gp_Dir(0,0,1));
+		
+
+		gp_Ax1 q1Axis(q1,gp_Dir(1,0,0));
 		gp_Vec q1q2Vec=leftHorizontalVec.Rotated(q1Axis,(360-A2)*PI/180);
 		q1q2Vec.Normalize();
 		q1q2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A2-alfa)*PI/180)));
 		gp_Pnt q1End=q1.Translated(q1q2Vec);
 		q2=q1End;
 
-		gp_Ax1 p1Axis(p1,gp_Dir(0,0,1));
+		gp_Ax1 p1Axis(p1,gp_Dir(1,0,0));
 		gp_Vec p1p2Vec=rightHorizontalVec.Rotated(q1Axis,A1*PI/180);
 		p1p2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A1)*PI/180)));
 		gp_Pnt p1End=p1.Translated(p1p2Vec);
@@ -347,13 +351,13 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Pnt q1q2pointZero;
 		gp_Vec q1q2Vec1;
 		gp_Vec q1q2Vec2;
-		gp_Vec oZ(gp_Dir(0,0,1));
+		gp_Vec oZ(gp_Dir(1,0,0));
 		q1q2LineCurve->D0(U1,q1q2pointZero);
 		TopoDS_Vertex q1q2vertZero=BRepBuilderAPI_MakeVertex(q1q2pointZero);
 		q1q2LineCurve->D2(U1,q1q2pointZero,q1q2Vec1,q1q2Vec2);
 		gp_Vec q1q2crossed=q1q2Vec1.Crossed(oZ);
 		q1q2crossed.Normalize();
-		q1q2crossed.Multiply(bearingThickness);
+		q1q2crossed.Multiply(bearingThickness+tipRadius);
 		q1q2pointZero.Translate(q1q2crossed);
 		q1q2vertZero=BRepBuilderAPI_MakeVertex(q1q2pointZero);
 		TopoDS_Edge bearingSideBottomEdge=BRepBuilderAPI_MakeEdge(q1,q1q2pointZero);
@@ -371,7 +375,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Vec p1p2Vec1Reversed=p1p2Vec1.Reversed();
 		gp_Vec p1p2crossed=p1p2Vec1Reversed.Crossed(oZ);
 		p1p2crossed.Normalize();
-		p1p2crossed.Multiply(exhaustThickness);
+		p1p2crossed.Multiply(exhaustThickness+tipRadius);
 		p1p2pointZero.Translate(p1p2crossed);
 		p1p2vertZero=BRepBuilderAPI_MakeVertex(p1p2pointZero);
 		TopoDS_Edge exhaustSideBottomEdge=BRepBuilderAPI_MakeEdge(p1,p1p2pointZero);
@@ -423,18 +427,26 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		double bearingSideOuterWallScalar=minimumDistancePointOnq1q2.Distance(q2);//divider wall lengths
 		double exhaustSideOuterWallScalar=minimumDistancePointOnp1p2.Distance(p2);
 
-		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		ofstream out;
+		out.open("D:/text1.txt");
+		out<<"\n  U   : "<<exhaustSideOuterWallScalar<<endl;
+			
+	
+
+		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec divideLineVec(dividerPointOnBase,bottomParallelEdgesIntersectionPnt);
 		divideLineVec.Normalize();
 		gp_Vec rightRotatedVec=divideLineVec.Rotated(rightAx,((360-(dividerAngle/2)))*PI/180);
 		rightRotatedVec.Multiply(exhaustSideOuterWallScalar);
 		gp_Pnt rightTopPointOfDividerWall=rightBottomPointOfDividerWall.Translated(rightRotatedVec);
 		TopoDS_Edge rightDividerWall=BRepBuilderAPI_MakeEdge(rightTopPointOfDividerWall,rightBottomPointOfDividerWall);
+		
 
-		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec leftRotateVec=divideLineVec.Rotated(leftAx,(dividerAngle/2)*PI/180); 
 		leftRotateVec.Multiply(bearingSideOuterWallScalar);
 		gp_Pnt leftTopPointofDividerWall=leftBottomPiontOfDividerWall.Translated(leftRotateVec);
+		
 		TopoDS_Edge leftDividerWall=BRepBuilderAPI_MakeEdge(leftTopPointofDividerWall,leftBottomPiontOfDividerWall);
 
 		TopoDS_Edge topLeftBaseEdge=BRepBuilderAPI_MakeEdge(q1q2EndPoint,leftTopPointofDividerWall);
@@ -442,29 +454,29 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Pnt leftCircleCentrePoint;
 		topLeftBaseLineCurve->D0(U2/2,leftCircleCentrePoint);
 		double topLeftCircleRadius=U2/2;
-		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ TopLeftCircle(leftCircleAxis,topLeftCircleRadius);
 		GC_MakeArcOfCircle topLeftHalfCircle(TopLeftCircle,leftTopPointofDividerWall,q1q2EndPoint,false);
 		Handle(Geom_TrimmedCurve) leftCircleArc=topLeftHalfCircle;
 		TopoDS_Edge leftCircle=BRepBuilderAPI_MakeEdge(leftCircleArc);
-		/*TopoDS_Edge leftCircleArcBazierCurveEdge=convertTrimmToBezier(leftCircleArc,q1q2Vec1,leftRotateVec,bearingSideOuterWallScalar);
-		leftCircle=leftCircleArcBazierCurveEdge;*/
+		TopoDS_Edge leftCircleArcBazierCurveEdge=convertTrimmToBezier(leftCircleArc,q1q2Vec1,leftRotateVec,bearingSideOuterWallScalar);
+		leftCircle=leftCircleArcBazierCurveEdge;
 
 		TopoDS_Edge topRightBaseEdge=BRepBuilderAPI_MakeEdge(p1p2EndPoint,rightTopPointOfDividerWall);
 		Handle_Geom_Curve topRightBaseLineCurve=BRep_Tool::Curve(topRightBaseEdge,U1,U2);
 		gp_Pnt rightCircleCentrePoint;
 		topRightBaseLineCurve->D0(U2/2,rightCircleCentrePoint);
 		double topRightCircleRaduis=U2/2;
-		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ topRightCircle(rightCircleAxis,topRightCircleRaduis);
 		GC_MakeArcOfCircle topRightHalfOfCircle(topRightCircle,p1p2EndPoint,rightTopPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) rightCircleArc=topRightHalfOfCircle;
 		TopoDS_Edge rightCircle=BRepBuilderAPI_MakeEdge(rightCircleArc);
-		/*TopoDS_Edge rightCircleArcBezierCurveEdge =convertTrimmToBezier(rightCircleArc,rightRotatedVec,p1p2Vec1,exhaustSideOuterWallScalar);
-		rightCircle = rightCircleArcBezierCurveEdge;*/
+		TopoDS_Edge rightCircleArcBezierCurveEdge =convertTrimmToBezier(rightCircleArc,rightRotatedVec,p1p2Vec1,exhaustSideOuterWallScalar);
+		rightCircle = rightCircleArcBezierCurveEdge;
 
 
-		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(0,0,1));
+		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(1,0,0));
 		gp_Circ tipcircle(bottomCircleAxis,tipRadius);
 		GC_MakeArcOfCircle bottomHalfCircle(tipcircle,leftBottomPiontOfDividerWall,rightBottomPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) tipCircleArc=bottomHalfCircle;
@@ -521,6 +533,48 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 
 	}
 
+		TopoDS_Edge CImportExportDoc::MergeEdges(TopoDS_Edge edge1,TopoDS_Edge edge2)
+{
+       Handle_Geom_Curve pGeoCurve;
+       BRep_Builder BrepBuilder;
+       TopoDS_Compound topoNewCurves;
+       Handle_AIS_Shape pNewAISCurves;
+       double first, last;
+       double tolerance=0.001;
+      
+              BrepBuilder.MakeCompound(topoNewCurves);
+            bool suceed = true;
+              bool firstedge = true;
+              TopoDS_Edge edge =edge1;
+              pGeoCurve = BRep_Tool::Curve(edge, first, last);
+              Handle(Geom_TrimmedCurve) curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+              GeomConvert_CompCurveToBSplineCurve final_spline(curve);
+            
+                                  edge = edge2;
+                                  pGeoCurve = BRep_Tool::Curve(edge, first, last);
+                                  curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+								  if (!final_spline.Add(curve, tolerance, Standard_False))
+                                  {
+                                         suceed = false;
+                                                                    
+              }
+
+				TopoDS_Edge merged;
+              if (suceed)
+              {
+                     BRepBuilderAPI_MakeEdge theEdgeBuilder_final(final_spline.BSplineCurve());
+                     BrepBuilder.Add(topoNewCurves, theEdgeBuilder_final.Edge());
+					 BRepTools::Write(theEdgeBuilder_final,"D:/Breps/newVolute/merged.brep");
+					 merged=theEdgeBuilder_final;
+              }
+       
+			  return merged;
+
+}
+
+
+
+
 
 	TopoDS_Edge CImportExportDoc::convertTrimmToBezier(Handle_Geom_Curve curve,gp_Vec leftVec,gp_Vec rightVec,double scaler)
 	{
@@ -537,6 +591,33 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		leftVec.Multiply(scaler/10);
 		rightVec.Multiply(scaler/10);
 		
+		double paraGap=ArcBSplineCurve->LastParameter()-ArcBSplineCurve->FirstParameter();
+
+		double middleSegmentStartPara=ArcBSplineCurve->FirstParameter()+paraGap/4;
+		double middleSegmentEndPara=ArcBSplineCurve->FirstParameter()+(paraGap/4)*3;
+
+		gp_Pnt middleSegmentStartPoint;
+		gp_Pnt middleSegmentEndPoint;
+
+		TopoDS_Edge bsplineEdge=BRepBuilderAPI_MakeEdge(ArcBSplineCurve);
+		ArcBSplineCurve->D0(middleSegmentStartPara,middleSegmentStartPoint);
+		ArcBSplineCurve->D0(middleSegmentEndPara,middleSegmentEndPoint);
+
+		Handle_Geom_BSplineCurve middleBSplineCurve=ArcBSplineCurve;
+		middleBSplineCurve->Segment(middleSegmentStartPara,middleSegmentEndPara);
+
+		TopoDS_Edge middleSegmentEdge=BRepBuilderAPI_MakeEdge(middleBSplineCurve);
+
+		GeomConvert_BSplineCurveToBezierCurve middleSegmentToBezierCurve(middleBSplineCurve);
+		Handle_Geom_BezierCurve middleSegmentBezierCurve=middleSegmentToBezierCurve.Arc(1);
+
+		gp_Pnt pointArrayMiddle[4];
+		for(int i=0;i<middleSegmentBezierCurve->NbPoles();i++){
+			pointArrayMiddle[i]=middleSegmentBezierCurve->Pole(i+1);
+			
+		
+		}
+
 		TopoDS_Edge curveEdge=BRepBuilderAPI_MakeEdge( ArcBSplineCurve);
 		TopoDS_Edge e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
 		double nbPoles=Arc1BezierCurve->NbPoles();
@@ -550,9 +631,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 			
 		}	
 		gp_Pnt startPoint=pointArray1[0];
-		gp_Pnt leftMiddlePoint=pointArray1[1];
 		gp_Pnt leftTanPoint=pointArray1[0].Translated(leftVec);
+		gp_Pnt leftMiddlePoint=pointArray1[1];
+
 		
+
 		Arc1BezierCurve->InsertPoleAfter(1,leftTanPoint);
 		e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
 
@@ -572,29 +655,11 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		Arc2BezierCurve->InsertPoleBefore(3,rightTanPoint);
 
 		TopoDS_Edge e2=BRepBuilderAPI_MakeEdge(Arc2BezierCurve);
-		TopoDS_Wire curveWire=BRepBuilderAPI_MakeWire(e1,e2);
+		TopoDS_Edge mergedEdge=MergeEdges(e1,e2);
 
-		double paraGap=ArcBSplineCurve->LastParameter()-ArcBSplineCurve->FirstParameter();
 
-		double middleSegmentStartPara=paraGap/4;
-		double middleSegmentEndPara=paraGap/4*3;
 
-		gp_Pnt middleSegmentStartPoint;
-		gp_Pnt middleSegmentEndPoint;
-
-		TopoDS_Edge bsplineEdge=BRepBuilderAPI_MakeEdge(ArcBSplineCurve);
-		ArcBSplineCurve->D0(middleSegmentStartPara,middleSegmentStartPoint);
-		ArcBSplineCurve->D0(middleSegmentEndPara,middleSegmentEndPoint);
-
-		displayPoint(Quantity_NOC_ORANGE,middleSegmentStartPoint);
-		displayPoint(Quantity_NOC_ORANGE,middleSegmentEndPoint);
-		m_pcoloredshapeList->Add(Quantity_NOC_RED,bsplineEdge);
-		CString str;
-		CString str1;
-		str.Format(_T("para %g\n"),curve->FirstParameter());
-		str1.Format(_T("last para %g"),curve->LastParameter());
-
-		AfxMessageBox(str+str1);
+		//TColgp_Array1OfPnt poleArray(1)
 
 /*
 		double lastParaOfArc1=Arc1BezierCurve->LastParameter();
@@ -626,10 +691,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		//GeomAPI_PointsToBSpline bspline(bsplinePoles); 
 		GeomAPI_Interpolate bsplineInterpolate(poleArray,Standard_False,1.0e-6);
 		bsplineInterpolate.Perform();
-
 		*/
-
-
 
 		/*Handle_TColgp_HArray1OfPnt poleArray=new TColgp_HArray1OfPnt(1,11);
 		gp_Pnt arc1PointArray[10];
@@ -658,10 +720,28 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		//BRepTools::Write(bsplineEdge,"D:/Breps/DualVolute/bspline.brep");
 		
 
+		Standard_Real  U1;
+		Standard_Real U2;
 
+		TopoDS_Edge curveEdge1=BRepBuilderAPI_MakeEdge(curve);
+
+		Handle_Geom_Curve curve1=BRep_Tool::Curve(curveEdge1,U1,U2);
+
+		//displayPoint(Quantity_NOC_ORANGE,middleSegmentStartPoint);
+		//displayPoint(Quantity_NOC_ORANGE,middleSegmentEndPoint);
+		
+		//m_pcoloredshapeList->Add(Quantity_NOC_IVORY,mergedEdge);
+
+		//CString str;
+		//CString str1;
+		//str.Format(_T("nbpoints %d \n"),middleSegmentBezierCurve->NbPoles());
+		//str1.Format(_T("last para %g"),U2);
+
+	
 		m_pcoloredshapeList->Display(myAISContext);
 		Fit();
-		return e1;
+		return mergedEdge;
+
 	}
 
 	void CImportExportDoc::OnBearingVolute(){
@@ -730,27 +810,47 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		exitPipeRadius=width*3;
 		voluteRadius=width*5;
 		
-
+		gp_Pnt q1(0,bearingFlankHeightGap,-width);
 		// volute
 		BRepOffsetAPI_ThruSections sections;
+		sections.SetContinuity(GeomAbs_C1);
 		gp_Trsf transfer;
-		gp_Ax1 rotationAxis(gp_Pnt(0,-voluteRadius,0),gp_Dir(1,0,0));
+		gp_Ax1 rotationAxis(gp_Pnt(0,-voluteRadius,0),gp_Dir(0,0,1));
 
-		int numberOfCrossSections=36;
+		int numberOfCrossSections=18;
 		double toungArea=wholeVoluteArea*0.01;
-		TopoDS_Wire arrayOfCrossSections[36];
+		TopoDS_Wire arrayOfCrossSections[18];
 		TopoDS_Wire newCrossSection;
-		double areaReductionRate=(wholeVoluteArea-toungArea)/numberOfCrossSections;
+		double areaReductionRate=(wholeVoluteArea-toungArea)/numberOfCrossSections-1;
 		double rotationAngle=(360/numberOfCrossSections)*PI/180;
+		displayPoint(gp_Pnt(0,0,10));
+		displayPoint(gp_Pnt(0,0,-10));
+		displayPoint(gp_Pnt(0,10,0));
+		displayPoint(q1);
 
+		gp_Pnt zero(0,0,0);
 
-		double expectedArea=wholeVoluteArea-(areaReductionRate*0);
+		TopoDS_Edge edgeTest1=BRepBuilderAPI_MakeEdge(zero,gp_Pnt(0,0,10));
+
+		TopoDS_Edge edgeTest2=BRepBuilderAPI_MakeEdge(zero,gp_Pnt(10,0,0));
+
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,edgeTest1);
+		m_pcoloredshapeList->Add(Quantity_NOC_RED,edgeTest2);
+
+		TopoDS_Edge edgeTest3=BRepBuilderAPI_MakeEdge(gp_Pnt(10,0,0),gp_Pnt(10,10,0));
+		TopoDS_Edge edgeTest4=BRepBuilderAPI_MakeEdge(gp_Pnt(0,0,10),gp_Pnt(0,10,10));
+
+		m_pcoloredshapeList->Add(Quantity_NOC_YELLOW,edgeTest3);
+		m_pcoloredshapeList->Add(Quantity_NOC_GREEN,edgeTest4);
+
+		double expectedArea=wholeVoluteArea;
 		newCrossSection=getDualVoluteCrossSection(width,bearingFlankHeightGap, bearingFlankHeight, bearingSideAngle, exhaustSideAngle,expectedArea, tipRadius,
 			dividerWallHeight, exhaustFlankHeight,dividerAngle, exhaustThickness,bearingThickness);
 		transfer.SetRotation(rotationAxis,360*PI/180);
 		BRepBuilderAPI_Transform rotated(newCrossSection,transfer);
 		arrayOfCrossSections[0]=TopoDS::Wire(rotated.Shape());// 360 crossSection
 		sections.AddWire(arrayOfCrossSections[0]);
+		m_pcoloredshapeList->Add(Quantity_NOC_IVORY,newCrossSection);
 
 		for(int i=1;i<=numberOfCrossSections-1;i++){
 
@@ -761,7 +861,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 			BRepBuilderAPI_Transform rotated(newCrossSection,transfer);
 			arrayOfCrossSections[i]=TopoDS::Wire(rotated.Shape());
 			sections.AddWire(arrayOfCrossSections[i]);
-	
+			
 		}
 
 		double expectedArea1=wholeVoluteArea-(areaReductionRate*numberOfCrossSections);
@@ -774,7 +874,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		sections.AddWire(arrayOfCrossSections[numberOfCrossSections-1]);//toung crossSection
 		sections.Build();
 		TopoDS_Shape VoluteShape(sections.Shape());
-		
+	
+		/*
 		//exit pipe section
 
 		TopoDS_Wire leftVoluteWire;
@@ -799,7 +900,9 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		TopoDS_Shape leftTransitionPartShape;
 		TopoDS_Shape rightTransitionPartShape;
 
-		createTransitionExitPipePart(leftTransitionPartShape,rightTransitionPartShape,leftTransition,rightTransition,centrePointOfCircle,arrayOfCrossSections[27],
+
+
+		createTransitionExitPipePart(leftTransitionPartShape,rightTransitionPartShape,leftTransition,rightTransition,centrePointOfCircle,arrayOfCrossSections[13],
 									 leftVoluteWire,rightVoluteWire,p2q2Edge,leftBottomVector,divideLineVec,exitPipeRadius,exitDividerAngle,maxWidthOfDividerWall,
 									 transitionPartLength,voluteRadius
 									 );
@@ -830,6 +933,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		BRepTools::Write(transitionCom,"D:/Breps/DualVolute/completeShape.brep");
 		CString str;
 
+		*/
 
 		m_pcoloredshapeList->Display(myAISContext);
 		Fit();
@@ -942,7 +1046,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		q1q2LineCurve->D2(U1,q1q2pointZero,q1q2Vec1,q1q2Vec2);
 		gp_Vec q1q2crossed=q1q2Vec1.Crossed(oZ);
 		q1q2crossed.Normalize();
-		q1q2crossed.Multiply(bearingThickness);
+		q1q2crossed.Multiply(bearingThickness+tipRadius);
 		q1q2pointZero.Translate(q1q2crossed);
 		q1q2vertZero=BRepBuilderAPI_MakeVertex(q1q2pointZero);
 		TopoDS_Edge bearingSideBottomEdge=BRepBuilderAPI_MakeEdge(q1,q1q2pointZero);
@@ -960,7 +1064,7 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Vec p1p2Vec1Reversed=p1p2Vec1.Reversed();
 		gp_Vec p1p2crossed=p1p2Vec1Reversed.Crossed(oZ);
 		p1p2crossed.Normalize();
-		p1p2crossed.Multiply(exhaustThickness);
+		p1p2crossed.Multiply(exhaustThickness+tipRadius);
 		p1p2pointZero.Translate(p1p2crossed);
 		p1p2vertZero=BRepBuilderAPI_MakeVertex(p1p2pointZero);
 		TopoDS_Edge exhaustSideBottomEdge=BRepBuilderAPI_MakeEdge(p1,p1p2pointZero);
@@ -1013,6 +1117,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		gp_Pnt minimumDistancePointOnq1q2=getMinimumDistancePoint(q1q2Edge,LeftbottomVert);
 
 		TopoDS_Vertex mdVert=BRepBuilderAPI_MakeVertex(minimumDistancePointOnq1q2);
+		
+
 		
 		TopoDS_Edge mdline=BRepBuilderAPI_MakeEdge(minimumDistancePointOnq1q2,leftBottomPiontOfDividerWall);
 		TopoDS_Edge mdline1=BRepBuilderAPI_MakeEdge(minimumDistancePointOnp1p2,rightBottomPointOfDividerWall);
@@ -1150,6 +1256,8 @@ IMPLEMENT_DYNCREATE(CImportExportDoc, OCC_3dDoc)
 		w1=leftTransition;
 		w2=rightTransition;
 		centre=centrePointOfCircle;
+
+		BRepTools::Write(leftTransitionPartShape,"D:/Breps/DualVolute/leftTransitionPartShape1.brep");
 	
 	}
 
@@ -2717,11 +2825,18 @@ void CImportExportDoc::getExitPipeTrainsition(TopoDS_Wire& w1,TopoDS_Wire& w2,gp
 	void CImportExportDoc::OnBearingVoluteDialog()
 	{
 	
-		dualVoluteDlg= new CDualVoluteDialog();
+		dualVoluteDlg= new CDualVoluteDialog(myAISContext);
 		dualVoluteDlg->Create(IDD_DIALOG3);
 		dualVoluteDlg->ShowWindow(SW_SHOW);
 
 
+	}
+
+	void CImportExportDoc::OnZXPlain()
+	{
+		ZXDlg=new CZXDialog(myAISContext);
+		ZXDlg->Create(IDD_DIALOG_ZX);
+		ZXDlg->ShowWindow(SW_SHOW);
 	}
 
 

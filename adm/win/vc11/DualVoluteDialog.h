@@ -35,6 +35,7 @@
 #include <BRepLib_FuseEdges.hxx>
 #include <GeomAPI_PointsToBSpline.hxx>
 #include <GeomAPI_Interpolate.hxx>
+#include <AIS_InteractiveContext.hxx>
 
 // CDualVoluteDialog dialog
 
@@ -43,7 +44,7 @@ class CDualVoluteDialog : public CDialog
 	DECLARE_DYNAMIC(CDualVoluteDialog)
 
 public:
-	CDualVoluteDialog(CWnd* pParent = NULL);   // standard constructor
+	CDualVoluteDialog(Handle_AIS_InteractiveContext,CWnd* pParent = NULL);   // standard constructor
 	virtual ~CDualVoluteDialog();
 
 // Dialog Data
@@ -51,7 +52,8 @@ public:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-
+	CColoredShapes* m_pcoloredshapeList;
+	  Handle(AIS_InteractiveContext) myAISContext;
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedOk();
@@ -98,7 +100,7 @@ public:
 	gp_Pnt getMinimumDistancePoint(TopoDS_Edge,TopoDS_Vertex);
 	TopoDS_Edge convertTrimmToBezier(Handle_Geom_Curve,gp_Vec,gp_Vec,double);
 	double getDividerWallMaximumWidth(TopoDS_Wire);
-
+	void MergeEdges(TopoDS_Edge edge1, TopoDS_Edge edge2);
 
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButton1();

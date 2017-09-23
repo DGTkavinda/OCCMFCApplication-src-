@@ -49,6 +49,7 @@
 #include <GeomAPI_Interpolate.hxx>
 
 #include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\DualVoluteDialog.h"
+#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\ZXDialog.h"
 
 //#include "BRepFeat_MakeCylindricalHole.hxx"
 //#include "D:\OCCT\opencascade-7.0.0\samples\mfc\standard\05_ImportExport\adm\win\vc11\FilletDialog.h"
@@ -110,6 +111,8 @@ public:
 
 	void createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire,TopoDS_Wire,TopoDS_Wire ,TopoDS_Edge,gp_Vec,gp_Vec,double,double,double,double,double);
 	void createExitPipeEndigPart(TopoDS_Shape& s1,TopoDS_Shape&s2,TopoDS_Wire,TopoDS_Wire,gp_Pnt,gp_Vec,gp_Vec,double,double,double,double,double);
+	TopoDS_Edge MergeEdges(TopoDS_Edge edge1, TopoDS_Edge edge2);
+
 // Implementation
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -150,6 +153,7 @@ protected:
 	afx_msg void OnDualVolute();
 	afx_msg void OnBearingVolute();
 	afx_msg void OnBearingVoluteDialog();
+	afx_msg void OnZXPlain();
 	
 	
 	//}}AFX_MSG
@@ -161,7 +165,7 @@ protected:
 	BRepPrimAPI_MakeBox* boxPointer; //= new BRepPrimAPI_MakeBox();
 	CVoluteDialog* voluteDlg;
 	CDualVoluteDialog* dualVoluteDlg; 
-	
+	CZXDialog* ZXDlg;
 	
 	union types
 	{

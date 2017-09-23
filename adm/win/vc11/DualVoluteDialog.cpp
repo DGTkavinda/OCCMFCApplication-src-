@@ -36,16 +36,18 @@
 #include "BRepAlgoAPI_BuilderAlgo.hxx"
 #include "BRepFeat_MakeCylindricalHole.hxx"
 #include "windef.h"
+#include "GeomConvert_CompCurveToBSplineCurve.hxx"
 #define PI 3.14159265
 
 // CDualVoluteDialog dialog
 
 IMPLEMENT_DYNAMIC(CDualVoluteDialog, CDialog)
 
-CDualVoluteDialog::CDualVoluteDialog(CWnd* pParent /*=NULL*/)
+CDualVoluteDialog::CDualVoluteDialog(Handle_AIS_InteractiveContext myContext,CWnd* pParent /*=NULL*/)
 	: CDialog(CDualVoluteDialog::IDD, pParent)
 {
-
+	myAISContext = myContext;
+	myAISContext->SetDisplayMode(AIS_Shaded);
 }
 
 CDualVoluteDialog::~CDualVoluteDialog()
@@ -71,12 +73,10 @@ END_MESSAGE_MAP()
 void CDualVoluteDialog::OnBnClickedOk()
 {
 
-	
 	CString str="sdsdf";
 	AfxMessageBox(str);
 	// TODO: Add your control notification handler code here
 	CDialog::OnOK();
-
 
 }
 
@@ -158,7 +158,7 @@ void CDualVoluteDialog::OnBearingVolute(){
 		// volute
 		BRepOffsetAPI_ThruSections sections;
 		gp_Trsf transfer;
-		gp_Ax1 rotationAxis(gp_Pnt(0,-voluteRadius,0),gp_Dir(1,0,0));
+		gp_Ax1 rotationAxis(gp_Pnt(0,-voluteRadius,0),gp_Dir(0,0,1));
 
 		int numberOfCrossSections=36;
 		double toungArea=wholeVoluteArea*0.01;
@@ -304,26 +304,26 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		double q2y=(h*sinA2)/(sin((A2-alfa)*PI/180));
 
 
-		gp_Pnt p0(0,-exhaustFlankHeight,0);
-		gp_Pnt q0(-width,-exhaustFlankHeight,0);
-		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(-1,0,0));
-		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(1,0,0));
+		gp_Pnt p0(0,0,-exhaustFlankHeight);
+		gp_Pnt q0(0,-exhaustFlankHeight,-width);
+		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,-1));
+		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
 
 		gp_Pnt p1(0,0,0);
-		gp_Pnt p2(p2x,p2y,0);
+		gp_Pnt p2(0,p2y,p2x);
 
-		gp_Pnt q1(-width,bearingFlankHeightGap,0);
-		gp_Pnt q2(-(width+q2x),bearingFlankHeightGap+q2y,0);
-		gp_Pnt r1(-(exhaustThickness*sinA1),(exhaustThickness*cosA1),0);
+		gp_Pnt q1(0,bearingFlankHeightGap,-width);
+		gp_Pnt q2(0,bearingFlankHeightGap+q2y,-(width+q2x));
+		gp_Pnt r1(0,(exhaustThickness*cosA1),-(exhaustThickness*sinA1));
 
-		gp_Ax1 q1Axis(q1,gp_Dir(0,0,1));
+		gp_Ax1 q1Axis(q1,gp_Dir(1,0,0));
 		gp_Vec q1q2Vec=leftHorizontalVec.Rotated(q1Axis,(360-A2)*PI/180);
 		q1q2Vec.Normalize();
 		q1q2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A2-alfa)*PI/180)));
 		gp_Pnt q1End=q1.Translated(q1q2Vec);
 		q2=q1End;
 
-		gp_Ax1 p1Axis(p1,gp_Dir(0,0,1));
+		gp_Ax1 p1Axis(p1,gp_Dir(1,0,0));
 		gp_Vec p1p2Vec=rightHorizontalVec.Rotated(q1Axis,A1*PI/180);
 		p1p2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A1)*PI/180)));
 		gp_Pnt p1End=p1.Translated(p1p2Vec);
@@ -340,7 +340,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		TopoDS_Edge p0p1Edge=BRepBuilderAPI_MakeEdge(p0,p1);
 		TopoDS_Edge q0q1Edge=BRepBuilderAPI_MakeEdge(q0,q1);
 
-		TopoDS_Edge hirizontalLine=BRepBuilderAPI_MakeEdge(gp_Pnt(-10,0,0),gp_Pnt(10,0,0));
+		TopoDS_Edge hirizontalLine=BRepBuilderAPI_MakeEdge(gp_Pnt(0,0,-10),gp_Pnt(0,0,10));
 
 		TopoDS_Vertex vp1=BRepBuilderAPI_MakeVertex(p1);
 		TopoDS_Vertex vp2=BRepBuilderAPI_MakeVertex(p2);
@@ -366,7 +366,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt q1q2pointZero;
 		gp_Vec q1q2Vec1;
 		gp_Vec q1q2Vec2;
-		gp_Vec oZ(gp_Dir(0,0,1));
+		gp_Vec oZ(gp_Dir(1,0,0));
 		q1q2LineCurve->D0(U1,q1q2pointZero);
 		TopoDS_Vertex q1q2vertZero=BRepBuilderAPI_MakeVertex(q1q2pointZero);
 		q1q2LineCurve->D2(U1,q1q2pointZero,q1q2Vec1,q1q2Vec2);
@@ -440,7 +440,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		double bearingSideOuterWallScalar=minimumDistancePointOnq1q2.Distance(q2);//divider wall lengths
 		double exhaustSideOuterWallScalar=minimumDistancePointOnp1p2.Distance(p2);
 
-		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec divideLineVec(dividerPointOnBase,bottomParallelEdgesIntersectionPnt);
 		divideLineVec.Normalize();
 		gp_Vec rightRotatedVec=divideLineVec.Rotated(rightAx,((360-(dividerAngle/2)))*PI/180);
@@ -448,7 +448,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt rightTopPointOfDividerWall=rightBottomPointOfDividerWall.Translated(rightRotatedVec);
 		TopoDS_Edge rightDividerWall=BRepBuilderAPI_MakeEdge(rightTopPointOfDividerWall,rightBottomPointOfDividerWall);
 
-		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec leftRotateVec=divideLineVec.Rotated(leftAx,(dividerAngle/2)*PI/180); 
 		leftRotateVec.Multiply(bearingSideOuterWallScalar);
 		gp_Pnt leftTopPointofDividerWall=leftBottomPiontOfDividerWall.Translated(leftRotateVec);
@@ -459,7 +459,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt leftCircleCentrePoint;
 		topLeftBaseLineCurve->D0(U2/2,leftCircleCentrePoint);
 		double topLeftCircleRadius=U2/2;
-		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ TopLeftCircle(leftCircleAxis,topLeftCircleRadius);
 		GC_MakeArcOfCircle topLeftHalfCircle(TopLeftCircle,leftTopPointofDividerWall,q1q2EndPoint,false);
 		Handle(Geom_TrimmedCurve) leftCircleArc=topLeftHalfCircle;
@@ -472,7 +472,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt rightCircleCentrePoint;
 		topRightBaseLineCurve->D0(U2/2,rightCircleCentrePoint);
 		double topRightCircleRaduis=U2/2;
-		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ topRightCircle(rightCircleAxis,topRightCircleRaduis);
 		GC_MakeArcOfCircle topRightHalfOfCircle(topRightCircle,p1p2EndPoint,rightTopPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) rightCircleArc=topRightHalfOfCircle;
@@ -481,7 +481,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		rightCircle = rightCircleArcBezierCurveEdge;
 */
 
-		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(0,0,1));
+		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(1,0,0));
 		gp_Circ tipcircle(bottomCircleAxis,tipRadius);
 		GC_MakeArcOfCircle bottomHalfCircle(tipcircle,leftBottomPiontOfDividerWall,rightBottomPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) tipCircleArc=bottomHalfCircle;
@@ -515,6 +515,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 
 
 		TopoDS_Wire completeCrossSectionWire=completeCrossSection;
+	// 	m_pcoloredshapeList->Add(Quantity_NOC_GREEN, completeCrossSection);
 		return completeCrossSectionWire;
 	}
 
@@ -556,24 +557,24 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		double q2x=(h*cosA2)/(sin((A2-alfa)*PI/180));
 		double q2y=(h*sinA2)/(sin((A2-alfa)*PI/180));
 
-		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(-1,0,0));
-		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(1,0,0));
+		gp_Vec leftHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
+		gp_Vec rightHorizontalVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
 
 		gp_Pnt p1(0,0,0);
-		gp_Pnt p2(p2x,p2y,0);
+		gp_Pnt p2(0,p2y,p2x);
 
-		gp_Pnt q1(-width,bearingFlankHeightGap,0);
-		gp_Pnt q2(-(width+q2x),bearingFlankHeightGap+q2y,0);
-		gp_Pnt r1(-(exhaustThickness*sinA1),(exhaustThickness*cosA1),0);
+		gp_Pnt q1(0,bearingFlankHeightGap,-width);
+		gp_Pnt q2(0,bearingFlankHeightGap+q2y,-(width+q2x));
+		gp_Pnt r1(0,(exhaustThickness*cosA1),-(exhaustThickness*sinA1));
 
-		gp_Ax1 q1Axis(q1,gp_Dir(0,0,1));
+		gp_Ax1 q1Axis(q1,gp_Dir(1,0,0));
 		gp_Vec q1q2Vec=leftHorizontalVec.Rotated(q1Axis,(360-A2)*PI/180);
 		q1q2Vec.Normalize();
 		q1q2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A2-alfa)*PI/180)));
 		gp_Pnt q1End=q1.Translated(q1q2Vec);
 		q2=q1End;
 
-		gp_Ax1 p1Axis(p1,gp_Dir(0,0,1));
+		gp_Ax1 p1Axis(p1,gp_Dir(1,0,1));
 		gp_Vec p1p2Vec=rightHorizontalVec.Rotated(q1Axis,A1*PI/180);
 		p1p2Vec.Multiply(initialLengthOfOuterLine+(h/sin((A1)*PI/180)));
 		gp_Pnt p1End=p1.Translated(p1p2Vec);
@@ -589,7 +590,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		TopoDS_Edge p1r1Edge=BRepBuilderAPI_MakeEdge(p1,r1);
 		TopoDS_Edge q1r1Edge=BRepBuilderAPI_MakeEdge(q1,r1);
 
-		TopoDS_Edge hirizontalLine=BRepBuilderAPI_MakeEdge(gp_Pnt(-10,0,0),gp_Pnt(10,0,0));
+		TopoDS_Edge hirizontalLine=BRepBuilderAPI_MakeEdge(gp_Pnt(0,0,-10),gp_Pnt(0,0,10));
 
 		TopoDS_Vertex vp1=BRepBuilderAPI_MakeVertex(p1);
 		TopoDS_Vertex vp2=BRepBuilderAPI_MakeVertex(p2);
@@ -617,7 +618,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt q1q2pointZero;
 		gp_Vec q1q2Vec1;
 		gp_Vec q1q2Vec2;
-		gp_Vec oZ(gp_Dir(0,0,1));
+		gp_Vec oZ(gp_Dir(1,0,0));
 		q1q2LineCurve->D0(U1,q1q2pointZero);
 		TopoDS_Vertex q1q2vertZero=BRepBuilderAPI_MakeVertex(q1q2pointZero);
 		q1q2LineCurve->D2(U1,q1q2pointZero,q1q2Vec1,q1q2Vec2);
@@ -702,7 +703,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		double bearingSideOuterWallScalar=minimumDistancePointOnq1q2.Distance(q2);
 		double exhaustSideOuterWallScalar=minimumDistancePointOnp1p2.Distance(p2);
 
-		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		gp_Ax1 rightAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec divideLineVec(dividerPointOnBase,bottomParallelEdgesIntersectionPnt);
 		divideLineVec.Normalize();
 		gp_Vec rightRotatedVec=divideLineVec.Rotated(rightAx,((360-(dividerAngle/2)))*PI/180);
@@ -710,7 +711,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt rightTopPointOfDividerWall=rightBottomPointOfDividerWall.Translated(rightRotatedVec);
 		TopoDS_Edge rightDividerWall=BRepBuilderAPI_MakeEdge(rightTopPointOfDividerWall,rightBottomPointOfDividerWall);
 
-		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(0,0,1));
+		gp_Ax1 leftAx(rightBottomPointOfDividerWall,gp_Dir(1,0,0));
 		gp_Vec leftRotateVec=divideLineVec.Rotated(leftAx,(dividerAngle/2)*PI/180); 
 		leftRotateVec.Multiply(bearingSideOuterWallScalar);
 		gp_Pnt leftTopPointofDividerWall=leftBottomPiontOfDividerWall.Translated(leftRotateVec);
@@ -722,28 +723,30 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		gp_Pnt leftCircleCentrePoint;
 		topLeftBaseLineCurve->D0(U2/2,leftCircleCentrePoint);
 		double topLeftCircleRadius=U2/2;
-		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 leftCircleAxis(leftCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ TopLeftCircle(leftCircleAxis,topLeftCircleRadius);
 		GC_MakeArcOfCircle topLeftHalfCircle(TopLeftCircle,leftTopPointofDividerWall,q1q2EndPoint,false);
 		Handle(Geom_TrimmedCurve) leftCircleArc=topLeftHalfCircle;
 		TopoDS_Edge leftCircle=BRepBuilderAPI_MakeEdge(leftCircleArc);
 		TopoDS_Edge leftCircleArcBazierCurveEdge=convertTrimmToBezier(leftCircleArc,q1q2Vec1,leftRotateVec,bearingSideOuterWallScalar);
 		leftCircle=leftCircleArcBazierCurveEdge;
+		BRepTools::Write(leftCircle,"D:/Breps/newVolute/curve.brep");
 
 		TopoDS_Edge topRightBaseEdge=BRepBuilderAPI_MakeEdge(p1p2EndPoint,rightTopPointOfDividerWall);
 		Handle_Geom_Curve topRightBaseLineCurve=BRep_Tool::Curve(topRightBaseEdge,U1,U2);
 		gp_Pnt rightCircleCentrePoint;
 		topRightBaseLineCurve->D0(U2/2,rightCircleCentrePoint);
 		double topRightCircleRaduis=U2/2;
-		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(0,0,1));
+		gp_Ax2 rightCircleAxis(rightCircleCentrePoint,gp_Dir(1,0,0));
 		gp_Circ topRightCircle(rightCircleAxis,topRightCircleRaduis);
 		GC_MakeArcOfCircle topRightHalfOfCircle(topRightCircle,p1p2EndPoint,rightTopPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) rightCircleArc=topRightHalfOfCircle;
 		TopoDS_Edge rightCircle=BRepBuilderAPI_MakeEdge(rightCircleArc);
 		TopoDS_Edge rightCircleArcBezierCurveEdge =convertTrimmToBezier(rightCircleArc,rightRotatedVec,p1p2Vec1,exhaustSideOuterWallScalar);
 		rightCircle = rightCircleArcBezierCurveEdge;
+		BRepTools::Write(rightCircle,"D:/Breps/newVolute/curve1.brep");
 
-		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(0,0,1));
+		gp_Ax2 bottomCircleAxis(bottomParallelEdgesIntersectionPnt,gp_Dir(1,0,0));
 		gp_Circ tipcircle(bottomCircleAxis,tipRadius);
 		GC_MakeArcOfCircle bottomHalfCircle(tipcircle,leftBottomPiontOfDividerWall,rightBottomPointOfDividerWall,false);
 		Handle(Geom_TrimmedCurve) tipCircleArc=bottomHalfCircle;
@@ -763,6 +766,8 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		rightVoluteWire.Add(rightDividerWall);
 		rightVoluteWire.Add(rightCircle);
 		rightVoluteWire.Add(p1p2Edge);
+
+		BRepTools::Write(leftVoluteWire,"D:/Breps/newVolute/leftVoluteWire.brep");
 
 		w1=leftVoluteWire;
 		w2=rightVoluteWire;
@@ -858,13 +863,13 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 																								double exitDividerWallWidth,double exitPipeRadius,gp_Vec divideLineVec)
 		{
 
-		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(1,0,0));
 		gp_Circ exitPipeCircle(exitePipeCircleAxis,exitPipeRadius);
 		TopoDS_Edge exitCircleEdge=BRepBuilderAPI_MakeEdge(exitPipeCircle);
 
 
-		gp_Vec straitExitDividerVec(gp_Pnt(0,0,0),gp_Pnt(1,0,0));
-		straitExitDividerVec.Rotate(gp_Ax1(gp_Pnt(0,0,0),gp_Dir(0,0,1)),90*PI/180);
+		gp_Vec straitExitDividerVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
+		straitExitDividerVec.Rotate(gp_Ax1(gp_Pnt(0,0,0),gp_Dir(1,0,0)),90*PI/180);
 		gp_Pnt zeroPnt(0,0,0);
 		zeroPnt.Translate(straitExitDividerVec);
 
@@ -897,7 +902,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 
 		double filletRadius=8;
 
-		gp_Pln filletPlane(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Pln filletPlane(centrePointOfCircle,gp_Dir(1,0,0));
 		ChFi2d_FilletAPI leftTopFillet(leftExitDividerEdge,leftExitArcEdge,filletPlane);
 		leftTopFillet.Perform(filletRadius);
 		TopoDS_Edge leftTopFilletEdge=leftTopFillet.Result(topLeftExitPnt,leftExitDividerEdge,leftExitArcEdge,-1);
@@ -993,13 +998,13 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 												  double exitDividerWallWidth,double exitPipeRadius,gp_Vec divideLineVec)
 	{
 
-		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(1,0,0));
 		gp_Circ exitPipeCircle(exitePipeCircleAxis,exitPipeRadius);
 		TopoDS_Edge exitCircleEdge=BRepBuilderAPI_MakeEdge(exitPipeCircle);
 
 
-		gp_Vec straitExitDividerVec(gp_Pnt(0,0,0),gp_Pnt(1,0,0));
-		straitExitDividerVec.Rotate(gp_Ax1(gp_Pnt(0,0,0),gp_Dir(0,0,1)),exitDividerAngle*PI/180);
+		gp_Vec straitExitDividerVec(gp_Pnt(0,0,0),gp_Pnt(0,0,1));
+		straitExitDividerVec.Rotate(gp_Ax1(gp_Pnt(0,0,0),gp_Dir(1,0,0)),exitDividerAngle*PI/180);
 		gp_Pnt zeroPnt(0,0,0);
 		zeroPnt.Translate(straitExitDividerVec);
 
@@ -1030,7 +1035,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 
 		double filletRadius=8;
 
-		gp_Pln filletPlane(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Pln filletPlane(centrePointOfCircle,gp_Dir(1,0,0));
 		ChFi2d_FilletAPI leftTopFillet(leftExitDividerEdge,leftExitArcEdge,filletPlane);
 		leftTopFillet.Perform(filletRadius);
 		TopoDS_Edge leftTopFilletEdge=leftTopFillet.Result(topLeftExitPnt,leftExitDividerEdge,leftExitArcEdge,-1);
@@ -1111,6 +1116,12 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		Handle_Geom_BezierCurve Arc1BezierCurve=bsplineToBezierCurve.Arc(1);
 		Handle_Geom_BezierCurve Arc2BezierCurve=bsplineToBezierCurve.Arc(2);
 
+		gp_Pnt startPointOfBSplineCurve=ArcBSplineCurve->StartPoint();
+		gp_Pnt endPointOfBSplineCurve = ArcBSplineCurve->EndPoint();
+
+		double lengthOfCurve =startPointOfBSplineCurve.Distance(endPointOfBSplineCurve);
+		
+	
 		leftVec.Normalize();
 		rightVec.Normalize();
 
@@ -1119,7 +1130,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		
 		TopoDS_Edge curveEdge=BRepBuilderAPI_MakeEdge( ArcBSplineCurve);
 		TopoDS_Edge e1=BRepBuilderAPI_MakeEdge(Arc1BezierCurve);
-		double nbPoles=Arc1BezierCurve->NbPoles();
+		
 
 		gp_Pnt pointArray1[4];
 		TopoDS_Vertex vertArray[4];
@@ -1151,40 +1162,45 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		
 		Arc2BezierCurve->InsertPoleBefore(3,rightTanPoint);
 		TopoDS_Edge e2=BRepBuilderAPI_MakeEdge(Arc2BezierCurve);
-		TopoDS_Wire curveWire=BRepBuilderAPI_MakeWire(e1,e2);
+		TopoDS_Wire curveWire=BRepBuilderAPI_MakeWire(e1,e2);  
 
+
+		MergeEdges(e1,e2);
+
+
+		/*
+		int numberOfPoints =20;
 		double lastParaOfArc1=Arc1BezierCurve->LastParameter();
 		double lastParaOfArc2=Arc2BezierCurve->LastParameter();
-		double Arc1paraRatio=lastParaOfArc1/10;
-		double Arc2paraRatio=lastParaOfArc2/10;
+		double Arc1paraRatio=lastParaOfArc1/(numberOfPoints/2);
+		double Arc2paraRatio=lastParaOfArc2/(numberOfPoints/2);
 
-		gp_Pnt arc1PointArray[10];
-		gp_Pnt arc2PointArray[10];
-
-		Handle_TColgp_HArray1OfPnt poleArray=new TColgp_HArray1OfPnt(1,21);
-
-		//TColgp_Array1OfPnt bsplinePoles(1,21);
-		//bsplinePoles(1)=Arc1BezierCurve->StartPoint();
-		poleArray->SetValue(1,Arc1BezierCurve->StartPoint());
-		for(int i=0;i<10;i++){
-			Arc1BezierCurve->D0(Arc1paraRatio*(i+1),arc1PointArray[i]);
-			//bsplinePoles(i+2)=arc1PointArray[i];
-			poleArray->SetValue(i+2,arc1PointArray[i]);
-		}
-
-		for(int i=0;i<10;i++){
-			Arc2BezierCurve->D0(Arc2paraRatio*(i+1),arc2PointArray[i]);
-			//bsplinePoles(i+12)=arc2PointArray[i];
-			poleArray->SetValue(i+12,arc2PointArray[i]);
-		}
-
-
-		//GeomAPI_PointsToBSpline bspline(bsplinePoles); 
-		GeomAPI_Interpolate bsplineInterpolate(poleArray,Standard_False,1.0e-6);
-		bsplineInterpolate.Perform();
-		TopoDS_Edge bsplineEdge = BRepBuilderAPI_MakeEdge(bsplineInterpolate.Curve());
+		CString str;
+		str.Format(_T("para %g"),lastParaOfArc1);
+		AfxMessageBox(str);
+	
+		TColgp_Array1OfPnt bsplinePoles(1,numberOfPoints+1);
+		bsplinePoles(1)=Arc1BezierCurve->StartPoint();
 		
-		return bsplineEdge;
+		for(int i=0;i<numberOfPoints/2;i++){
+			gp_Pnt point;
+			Arc1BezierCurve->D0(Arc1paraRatio*(i+1),point);
+			bsplinePoles(i+2)=point;
+			
+		}
+
+		for(int i=0;i<10;i++){
+			gp_Pnt point;
+			Arc2BezierCurve->D0(Arc2paraRatio*(i+1),point);
+			bsplinePoles(i+12)=point;
+			
+		}
+
+		GeomAPI_PointsToBSpline bspline(bsplinePoles); 
+		TopoDS_Edge bsplineEdge = BRepBuilderAPI_MakeEdge(bspline.Curve())*/
+
+		
+		return e1;
 	}
 
 	void CDualVoluteDialog::createTransitionExitPipePart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire& w1,TopoDS_Wire& w2,gp_Pnt& centre,TopoDS_Wire crossSection27,TopoDS_Wire leftVoluteWire, TopoDS_Wire rightVoluteWire ,TopoDS_Edge p2q2Edge,gp_Vec leftBottomVector ,gp_Vec divideLineVec , double exitPipeRadius,double exitDividerAngle,double maxWidthOfDividerWall,double transitionPartLength, double voluteRadius ){
@@ -1198,7 +1214,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 
 		TopoDS_Vertex p2q2Vert=BRepBuilderAPI_MakeVertex(centrePointOfCircle); 
 
-		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(0,0,1));
+		gp_Ax2 exitePipeCircleAxis(centrePointOfCircle,gp_Dir(1,0,0));
 		gp_Circ exitPipeCircle(exitePipeCircleAxis,exitPipeRadius);
 		TopoDS_Edge exitCircleEdge=BRepBuilderAPI_MakeEdge(exitPipeCircle);
 
@@ -1211,7 +1227,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		//Transition
 		double tRLength=getMaximumHeight(crossSection27);
 		transitionPartLength=-voluteRadius-tRLength;
-		gp_Vec exitPipeTranslateVec(gp_Dir(0,0,1));
+		gp_Vec exitPipeTranslateVec(gp_Dir(1,0,0));
 		exitPipeTranslateVec.Multiply(transitionPartLength);
 		gp_Trsf translate;
 		translate.SetTranslation(exitPipeTranslateVec);
@@ -1246,7 +1262,7 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 	void CDualVoluteDialog::createExitPipeEndigPart(TopoDS_Shape& s1,TopoDS_Shape& s2,TopoDS_Wire leftTransition,TopoDS_Wire rightTransition,gp_Pnt centrePointOfCircle,gp_Vec leftBottomVector,gp_Vec divideLineVec ,double exitDividerWallWidth,double exitPipeRadius,double exitDividerAngle,double transitionPartLength,double exitPipeLength)
 	{
 	
-		gp_Vec exitPipeTranslateVec1(gp_Dir(0,0,1));
+		gp_Vec exitPipeTranslateVec1(gp_Dir(1,0,0));
 		gp_Trsf translate;
 		exitPipeTranslateVec1.Multiply(transitionPartLength+exitPipeLength);
 		translate.SetTranslation(exitPipeTranslateVec1);
@@ -1279,6 +1295,50 @@ TopoDS_Wire CDualVoluteDialog::getDualVoluteCrossSection(double width,double bea
 		s2=rightExitPipeEnding;
 
 	}
+
+
+	void CDualVoluteDialog::MergeEdges(TopoDS_Edge edge1,TopoDS_Edge edge2)
+{
+       Handle_Geom_Curve pGeoCurve;
+       BRep_Builder BrepBuilder;
+       TopoDS_Compound topoNewCurves;
+       Handle_AIS_Shape pNewAISCurves;
+       double first, last;
+       double tolerance=0.001;
+      
+              BrepBuilder.MakeCompound(topoNewCurves);
+            bool suceed = true;
+              bool firstedge = true;
+              TopoDS_Edge edge =edge1;
+              pGeoCurve = BRep_Tool::Curve(edge, first, last);
+              Handle(Geom_TrimmedCurve) curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+              GeomConvert_CompCurveToBSplineCurve final_spline(curve);
+            
+                                  edge = edge2;
+                                  pGeoCurve = BRep_Tool::Curve(edge, first, last);
+                                  curve = new Geom_TrimmedCurve(pGeoCurve, pGeoCurve->FirstParameter(), pGeoCurve->LastParameter());
+								  if (!final_spline.Add(curve, tolerance, Standard_False))
+                                  {
+                                         suceed = false;
+                                                                    
+              }
+
+
+              if (suceed)
+              {
+                     BRepBuilderAPI_MakeEdge theEdgeBuilder_final(final_spline.BSplineCurve());
+                     BrepBuilder.Add(topoNewCurves, theEdgeBuilder_final.Edge());
+					 BRepTools::Write(theEdgeBuilder_final,"D:/Breps/newVolute/merged.brep");
+                   
+              }
+       
+
+
+}
+
+
+
+
 
 
 
